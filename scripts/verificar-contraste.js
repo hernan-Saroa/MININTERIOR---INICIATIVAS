@@ -135,6 +135,17 @@ const PARES = [
   ['admin: texto sobre panel', '--tinta', '--panel'],
   ['admin: tenue sobre panel', '--tenue', '--panel'],
   ['admin: acción sobre panel', '--accion', '--panel'],
+
+  // Panel de consulta (buscar + dirección + filtros activos). Las fichas
+  // de filtro son de 12px: texto normal para WCAG, no texto grande.
+  ['ficha de filtro', '--blue', '--blue-tint'],
+  ['resultado en cero (ámbar)', '--amber', '--panel'],
+
+  // El contador de cada dirección es un dato —cuántas iniciativas hay ahí—,
+  // no un adorno, y va sobre su propia insignia. Los dos fondos son literales
+  // en `.tab .count`: si se retocan, este par avisa antes que el usuario.
+  ['contador de dirección', '--muted', '#f1f4f9'],
+  ['contador al pasar el cursor', '--blue', '#e6edf8'],
 ];
 
 // El mapa TONOS de web/src/ui/base.tsx: el único sitio donde /admin

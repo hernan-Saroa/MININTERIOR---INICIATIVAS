@@ -112,15 +112,41 @@ ok('toda fila mostrada cumple las dos condiciones',
    visibles.length > 0 && cumplen.length === visibles.length,
    `(${cumplen.length} de ${visibles.length})`);
 
-console.log('\nHay salida del filtro');
+// Lo que se comprueba aquí es lo mismo de siempre —hay salida, y la
+// pantalla dice qué está aplicado— pero contra el panel de consulta, que es
+// donde vive ahora. Antes era un solo botón cuyo rótulo enumeraba los
+// filtros; ahora cada filtro es una ficha que se quita sola, así que además
+// se comprueba que quitar UNA deje la otra en pie: eso es lo que el botón
+// único no podía hacer.
+console.log('\nHay salida del filtro, y dice cuál');
+const fichas = () => [...c.raiz.querySelectorAll('.chip-filtro')];
+const textoFichas = () => fichas().map((f) => f.textContent).join(' | ');
+ok('cada filtro aplicado tiene su ficha', fichas().length === 2, `(${fichas().length})`);
+ok('y las fichas dicen qué está filtrado',
+   /comisi/i.test(textoFichas()) && /alta/i.test(textoFichas()),
+   `("${textoFichas().replace(/\s+/g, ' ')}")`);
+
+// Quitar una sola: se va la de estado y sobrevive la de prioridad.
+const fichaEstado = fichas().find((f) => /comisi/i.test(f.textContent));
+fichaEstado.dispatchEvent(new c.w.MouseEvent('click', { bubbles: true }));
+const soloPrioridad = await hasta(() => fichas().length === 1);
+ok('quitar una ficha no se lleva la otra',
+   soloPrioridad && /alta/i.test(textoFichas()),
+   `("${textoFichas().replace(/\s+/g, ' ')}")`);
+
+// Y volver a ponerla para probar la salida completa.
+tarjetas(c.raiz).find((x) => rotulo(x) === 'En comisión')
+  .dispatchEvent(new c.w.MouseEvent('click', { bubbles: true }));
+await hasta(() => fichas().length === 2);
+
 const salida = c.raiz.querySelector('.quitar-filtros');
-ok('aparece el botón de quitar', !!salida);
-ok('y dice qué está filtrado', /comisi/i.test(salida?.textContent ?? '') && /alta/i.test(salida?.textContent ?? ''),
-   `("${salida?.textContent.trim().replace(/\s+/g, ' ')}")`);
+ok('con dos filtros aparece «Quitar todos»', !!salida,
+   `("${salida?.textContent.trim()}")`);
 salida.dispatchEvent(new c.w.MouseEvent('click', { bubbles: true }));
 const limpio = await hasta(() => filas(c.raiz).length === totalFilas);
-ok('al quitarlo vuelven todas las filas', limpio,
+ok('al quitarlos vuelven todas las filas', limpio,
    `(${filas(c.raiz).length} de ${totalFilas})`);
+ok('y no queda ninguna ficha', fichas().length === 0, `(${fichas().length})`);
 c.w.close();
 
 console.log('\nEl filtro viaja en la URL y el resumen dice su alcance');
@@ -132,6 +158,59 @@ const tot = cifra(tarjetas(d.raiz)[0]);
 ok('«totales» cuenta solo esa dirección', tot === filas(d.raiz).length && tot < totalFilas,
    `(${tot} de ${totalFilas} globales)`);
 d.w.close();
+
+// =====================================================================
+// El teclado en el panel de consulta.
+//
+// Nada de esto se ve leyendo el JSX: hay que montar la página, pulsar y
+// mirar dónde quedó el foco. Son las tres cosas que un teclado espera de
+// un buscador y de un grupo de opciones excluyentes.
+// =====================================================================
+console.log('\nEl panel de consulta se maneja con el teclado');
+const k = await montar('http://localhost/');
+const tecla = (destino, key) => destino.dispatchEvent(
+  new k.w.KeyboardEvent('keydown', { key, bubbles: true }));
+const campo = k.raiz.querySelector('#consulta-tramite');
+const pildoras = () => [...k.raiz.querySelectorAll('.tab')];
+
+tecla(k.w.document.body, '/');
+ok('«/» lleva el foco al buscador', k.w.document.activeElement === campo,
+   `(${k.w.document.activeElement?.id || k.w.document.activeElement?.tagName})`);
+
+// Y no se lo lleva mientras se escribe: en una celda editable la barra es
+// un carácter, no un atajo.
+const celda = k.raiz.querySelector('[contenteditable="true"]');
+celda.focus();
+tecla(celda, '/');
+ok('pero no interrumpe la escritura en una celda', k.w.document.activeElement === celda);
+
+console.log('\nEl riel de direcciones es un grupo de opciones excluyentes');
+const grupo = k.raiz.querySelector('.tabs');
+ok('declara role=radiogroup', grupo?.getAttribute('role') === 'radiogroup');
+ok('cada píldora es una opción',
+   pildoras().length > 1 && pildoras().every((p) => p.getAttribute('role') === 'radio'),
+   `(${pildoras().length})`);
+ok('solo la marcada declara aria-checked',
+   pildoras().filter((p) => p.getAttribute('aria-checked') === 'true').length === 1);
+// Tabulador itinerante: una sola parada en el riel, y dentro se anda con
+// las flechas. Antes había que tabular por las siete direcciones.
+ok('solo la marcada entra en el tabulador',
+   pildoras().filter((p) => p.getAttribute('tabindex') === '0').length === 1);
+
+const antes = pildoras().findIndex((p) => p.className.includes('active'));
+pildoras()[antes].focus();
+tecla(pildoras()[antes], 'ArrowRight');
+const movio = await hasta(() => pildoras().findIndex((p) => p.className.includes('active')) === antes + 1);
+ok('la flecha derecha pasa a la siguiente', movio,
+   `(de ${antes} a ${pildoras().findIndex((p) => p.className.includes('active'))})`);
+ok('y el foco viaja con ella',
+   k.w.document.activeElement === pildoras()[antes + 1]);
+
+tecla(k.w.document.activeElement, 'End');
+const alFinal = await hasta(() =>
+  pildoras()[pildoras().length - 1].className.includes('active'));
+ok('«Fin» salta a la última', alFinal);
+k.w.close();
 
 console.log('\nfallos: ' + fallos);
 process.exit(fallos ? 1 : 0);

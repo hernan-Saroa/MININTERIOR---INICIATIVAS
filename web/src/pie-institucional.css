@@ -1,0 +1,355 @@
+/* =====================================================================
+   Pie de página institucional.
+
+   Es una réplica del pie de https://www.mininterior.gov.co/, no una
+   reinterpretación: los valores de abajo se leyeron del CSS que sirve el
+   sitio (Divi, hoja `et-core-unified-tb-5251-tb-31861-deferred-13.min.css`)
+   y se transcribieron uno a uno. Cada bloque anota de qué módulo de Divi
+   sale, para que la próxima vez que el Ministerio cambie el pie se pueda
+   volver a comparar sin redescubrir de dónde vino cada número.
+
+   Lo que se conserva literal:
+     · La retícula: filas centradas a 1080 px con las anchuras de columna
+       exactas de Divi (38,2 % / 58,8 % con canal 2; 50 % / 50 % sin canal;
+       15,6 % / 15,6 % / 57,8 % con canal 3), y los márgenes inferiores en
+       porcentaje que Divi calcula sobre el ancho de cada columna.
+     · El degradado de la sección con el corte al 22 %: franja clara
+       arriba, azul #004884 debajo. Es lo que hace que la tarjeta blanca
+       parezca flotar sobre el azul.
+     · Tipografías: Montserrat 600 en los rótulos, Work Sans en los datos.
+     · Colores: rótulos #004884, texto #4b4b4b, enlaces #3366cc
+       subrayados, enlaces de políticas #000080, banda inferior #0943b5.
+
+   Lo único que se aparta del original, a propósito:
+     · Los rótulos son h2/h3 y no párrafos. En el sitio original son
+       párrafos, y eso deja el pie sin estructura para un lector de
+       pantalla. El aspecto es idéntico —este CSS fija tamaño, peso y
+       altura de línea— y la Resolución 1519 de 2020 lo pide.
+     · Los enlaces de políticas se muestran igual en móvil que en
+       escritorio. El original los cambia por JavaScript con tres
+       versiones distintas del bloque; una sola lista es más honesta.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   El CSS del tablero define reglas para el selector de elemento
+   `footer` (margen de 40 px, borde superior, display:flex, 11,5 px):
+   estaban pensadas para el descargo que va bajo la tabla. Este pie es
+   otro elemento y las anula por especificidad —`footer.pie-min` gana a
+   `footer`— sin tocar el CSS aprobado ni depender del orden de importación.
+   --------------------------------------------------------------------- */
+footer.pie-min {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  gap: 0;
+  flex-wrap: nowrap;
+  justify-content: normal;
+  font-family: "Work Sans", Helvetica, Arial, Lucida, sans-serif;
+  /* 16 px / 1,5 es lo que el pie del portal hereda de verdad: sale del
+     `body` de Bootstrap, que se carga después del de Divi. Solo lo usan
+     los bloques sin tamaño propio —los enlaces de políticas—; las
+     direcciones y los rótulos traen el suyo. */
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #4b4b4b;
+  text-align: left;
+  /* Sección: linear-gradient(180deg,#f6f8f9 22%,#004884 22%).
+     Sin transición: es un corte seco al 22 % de la altura del pie. */
+  background-image: linear-gradient(180deg, #f6f8f9 22%, #004884 22%);
+}
+
+/* En papel el descargo del tablero es lo que tiene valor jurídico; el pie
+   institucional son diez centímetros de direcciones y logos. */
+@media print {
+  footer.pie-min { display: none; }
+}
+
+/* ---------------------------------------------------------------------
+   Retícula: filas centradas, con 2 % de aire vertical. Las columnas
+   flotan y llevan porcentajes, como en Divi.
+
+   El ancho es lo único que NO se copia en píxeles del portal. Allí las
+   filas del pie miden 1200 px, que es el ancho de contenido del sitio
+   —está subido a 1200 en el personalizador del tema y pisa el valor de
+   fábrica de Divi—: o sea, el pie llega justo hasta donde llega el
+   contenido de la página.
+
+   Aquí el contenido del tablero mide 1616 px (`.wrap`, de 1680, menos sus
+   32 px de aire a cada lado), así que 1200 dejaba la tarjeta del pie
+   flotando estrecha en medio de una página ancha. Lo que se conserva es
+   la relación, que es lo que se ve: el pie termina donde termina la tabla.
+   Si cambia el ancho de `.wrap`, este número lo sigue.
+   --------------------------------------------------------------------- */
+.pie-min-fila {
+  position: relative;
+  width: 100%;
+  max-width: 1616px;
+  margin: 0 auto;
+  padding: 2% 0;
+}
+.pie-min-fila::after { content: ""; display: block; clear: both; }
+
+.pie-min-col {
+  position: relative;
+  float: left;
+  min-height: 1px;
+}
+.pie-min-fila > .pie-min-col:last-child { margin-right: 0 !important; }
+
+/* ---------------------------------------------------------------------
+   Fila 0 — sede principal, logos y redes.
+   `et_pb_row_0_tb_footer`: blanca, esquinas superiores de 20 px, borde
+   de 1 px #BABABA arriba y a los lados, 30 px de aire.
+   Canal 2: columnas de 38,2 % y 58,8 % separadas por 3 %.
+   --------------------------------------------------------------------- */
+.pie-min-fila--datos {
+  background-color: #fff;
+  border: 0 solid #bababa;
+  border-top-width: 1px;
+  border-right-width: 1px;
+  border-left-width: 1px;
+  border-radius: 20px 20px 0 0;
+  overflow: hidden;
+  padding: 30px 30px 2%;
+}
+.pie-min-fila--datos > .pie-min-col { margin-right: 3%; }
+.pie-min-col--2-5 { width: 38.2%; }
+.pie-min-col--3-5 { width: 58.8%; }
+/* Márgenes entre módulos: Divi los calcula sobre el ancho de la columna,
+   y los dos porcentajes dan el mismo hueco de 17,06 px. El último de cada
+   columna va sin margen, como en el original.
+
+   El selector arranca en la fila y no en la columna a propósito. Con
+   `.pie-min-col--2-5 > *` la regla empata en especificidad con la
+   tipografía de más abajo —`*` no suma nada— y perdía por orden: los dos
+   rótulos se quedaban sin margen y la tarjeta salía 34 px más corta. */
+.pie-min-fila--datos > .pie-min-col--2-5 > * { margin-bottom: 3.927%; }
+.pie-min-fila--datos > .pie-min-col--3-5 > * { margin-bottom: 2.551%; }
+.pie-min-fila--datos > .pie-min-col > :last-child { margin-bottom: 0; }
+
+/* ---------------------------------------------------------------------
+   Filas 1 a 5 — las otras sedes y los enlaces de políticas.
+   `et_pb_row_[1-5]_tb_footer`: blancas, sin aire vertical, 30 px a los
+   lados. Sin canal: dos columnas al 50 % pegadas, y los módulos de
+   dentro sin margen inferior.
+   --------------------------------------------------------------------- */
+.pie-min-fila--sede,
+.pie-min-fila--enlaces {
+  background-color: #fff;
+  border: 0 solid #cecece;
+}
+.pie-min-fila--sede { padding: 0 30px; }
+.pie-min-fila--enlaces { padding: 0 30px 2%; }
+
+.pie-min-fila--sede > .pie-min-col,
+.pie-min-fila--enlaces > .pie-min-col { width: 50%; margin: 0 !important; }
+.pie-min-fila--sede > .pie-min-col > *,
+.pie-min-fila--enlaces > .pie-min-col > * { margin-bottom: 0; }
+
+/* ---------------------------------------------------------------------
+   Fila 6 — banda azul con las marcas de país.
+   `et_pb_row_6_tb_footer`: fondo #0943b5. Canal 3: 15,6 % / 15,6 %.
+
+   En el portal esta fila es la única que conserva el ancho del 80 % de
+   Divi, pero en cualquier pantalla de escritorio el 80 % pasa de 1200 px
+   y el tope la deja igual de ancha que la tarjeta blanca. Aquí se le da
+   directamente el mismo ancho que a las demás para que la banda azul
+   siempre cierre a plomo con la tarjeta y con la tabla.
+   --------------------------------------------------------------------- */
+.pie-min-fila--marcas {
+  background-color: #0943b5;
+  border-color: #e6effd;
+}
+.pie-min-fila--marcas > .pie-min-col { margin-right: 5.5%; }
+.pie-min-col--1-5 { width: 15.6%; }
+.pie-min-col--1-5 > * { margin-bottom: 17.628%; }
+
+/* ---------------------------------------------------------------------
+   Tipografía.
+   Rótulos: color #004884, Montserrat 600, altura de línea 2em. El de
+   arriba a 25 px; los de sede y «Contacto» a 17 px.
+   Datos: Work Sans 14 px, altura 1,1em y ancho al 85 % —el original
+   estrecha la columna de texto para que las direcciones no lleguen
+   hasta el logo—.
+   --------------------------------------------------------------------- */
+.pie-min-tit,
+.pie-min-rotulo {
+  margin: 0;
+  padding: 0;
+  color: #004884;
+  font-family: "Montserrat", Helvetica, Arial, Lucida, sans-serif;
+  font-weight: 600;
+  line-height: 2em;
+}
+.pie-min-tit { font-size: 25px; }
+.pie-min-rotulo { font-size: 17px; }
+
+.pie-min-datos {
+  width: 85%;
+  font-family: "Work Sans", Helvetica, Arial, Lucida, sans-serif;
+  font-size: 14px;
+  line-height: 1.1em;
+}
+/* Cada párrafo del pie original arrastra dos separaciones distintas, y
+   hacen falta las dos para que el aire salga igual:
+
+     · `padding-bottom:1em` = 14 px, de Divi, en todos menos el último.
+     · `margin-bottom:1rem` = 16 px, de Bootstrap, en todos. El portal
+       carga Bootstrap después del reinicio de Divi y de ahí sale.
+
+   Se ve sobre todo en Archivo Central, la única sede escrita en tres
+   párrafos en vez de un párrafo con saltos de línea: sus tres líneas van
+   separadas 45 px (15,4 + 14 + 16) y no 29. */
+.pie-min-datos p { margin: 0 0 1rem; padding-bottom: 1em; }
+.pie-min-datos p:last-of-type { padding-bottom: 0; }
+
+/* Los 16 px de párrafo, en los bloques que en el portal SÍ van dentro de
+   <p>: el rótulo de tres de las cinco sedes y el «Contacto» de una.
+   `.pie-min-suelto` hace lo contrario, para las direcciones que allí son
+   texto suelto y por tanto no arrastran nada. Ver el comentario de `Sede`
+   en `ui/pie-institucional.tsx`: es una irregularidad del portal, no una
+   decisión de diseño, y ambas clases se pueden quitar de golpe.
+
+   El selector va completo porque las filas de sede ponen a cero el margen
+   de todos sus módulos con dos clases, y con `.pie-min-aire` a secas esa
+   regla ganaba por especificidad. */
+.pie-min-fila--sede > .pie-min-col > .pie-min-aire { margin-bottom: 1rem; }
+.pie-min-suelto p:last-of-type { margin-bottom: 0; }
+
+footer.pie-min a {
+  color: #3366cc;
+  /* Subrayado: el sitio carga Bootstrap después del reinicio de Divi y
+     con él vuelven los enlaces subrayados. Aquí se pone a mano. */
+  text-decoration: underline;
+}
+footer.pie-min a:hover { color: #004884; }
+
+/* ---------------------------------------------------------------------
+   Enlaces de políticas: `et_pb_text_20_tb_footer`, con 70 px de aire
+   arriba y en azul marino #000080 en lugar del azul de enlace.
+   --------------------------------------------------------------------- */
+.pie-min-politicas {
+  width: 100%;
+  max-width: 100%;
+  padding-top: 70px;
+}
+.pie-min-politicas p { margin: 0 0 1rem; padding-bottom: 1em; }
+.pie-min-politicas p:last-of-type { padding-bottom: 0; }
+footer.pie-min .pie-min-politicas a { color: #000080; }
+
+/* ---------------------------------------------------------------------
+   Redes sociales. Círculos de 32 px en #004884 con el glifo en blanco.
+   Twitter e Instagram llevan además un aro de 5 px en #0943b5: en el
+   original es un borde configurado módulo a módulo, y por eso los dos
+   primeros iconos se ven distintos de los dos últimos.
+   --------------------------------------------------------------------- */
+.pie-min-social {
+  list-style: none;
+  margin: 20px 0 -8px;
+  padding: 0;
+}
+.pie-min-social li {
+  display: inline-block;
+  margin: 0 8px 8px 0;
+}
+/* El selector lleva `footer.pie-min` delante porque la regla general de
+   enlaces del pie —#3366cc y subrayado— tiene la misma especificidad y va
+   después: sin esto los cuatro glifos salían azules sobre el círculo azul,
+   casi invisibles, y con una raya de subrayado cruzándolos. */
+footer.pie-min .pie-min-social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background-color: #004884;
+  color: #fff;
+  text-decoration: none;
+}
+footer.pie-min .pie-min-social a:hover { color: #fff; background-color: #0943b5; }
+.pie-min-social a svg { width: 16px; height: 16px; fill: currentColor; }
+/* El aro de los dos primeros. */
+.pie-min-social li:nth-child(-n+2) a {
+  border: 5px solid #0943b5;
+  box-sizing: content-box;
+}
+
+/* ---------------------------------------------------------------------
+   Imágenes.
+
+   En Divi el ancho y la alineación van en el MÓDULO, no en la imagen: el
+   bloque del logo mide 160 px y se empuja al borde derecho con
+   `margin-left:auto`. Dándole el ancho solo a la <img> el bloque seguía
+   ocupando la columna entera y los dos logos quedaban pegados al borde
+   izquierdo de su columna, a media tarjeta del sitio donde van.
+   --------------------------------------------------------------------- */
+.pie-min-logo-interior,
+.pie-min-icontec {
+  margin-left: auto;
+  margin-right: 0;
+}
+.pie-min-logo-interior { width: 160px; max-width: 160px; }
+.pie-min-icontec { width: 180px; max-width: 180px; }
+.pie-min-logo-interior img,
+.pie-min-icontec img { width: 100%; height: auto; }
+
+.pie-min-marca-co { text-align: right; }
+.pie-min-marca-co img { display: inline-block; }
+.pie-min-marca-govco img { width: 120px; height: auto; }
+
+/* ---------------------------------------------------------------------
+   Adaptación a pantallas estrechas, con los mismos cortes que el
+   original (980 px y 767 px) y las mismas piezas que desaparecen.
+   --------------------------------------------------------------------- */
+@media (min-width: 981px) {
+  /* El original trae dos bloques de redes y enseña uno según el ancho. */
+  .pie-min-social--movil { display: none !important; }
+}
+
+@media (max-width: 980px) {
+  .pie-min-col {
+    float: none;
+    width: 100% !important;
+    margin: 0 0 30px !important;
+    /* Al dejar de flotar, la columna deja de ser un contexto de formato y
+       el margen del último párrafo se escapaba de la columna, de la fila y
+       del fondo blanco: entre sede y sede aparecía una franja azul de
+       16 px. `flow-root` devuelve el contexto sin volver a flotar nada. */
+    display: flow-root;
+  }
+  .pie-min-fila > .pie-min-col:last-child { margin-bottom: 0 !important; }
+  .pie-min-col > * { margin-bottom: 0 !important; }
+
+  .pie-min-fila--datos,
+  .pie-min-fila--sede,
+  .pie-min-fila--enlaces {
+    padding-top: 50px;
+    padding-right: 50px;
+    padding-left: 50px;
+  }
+  /* El sello de ICONTEC y el bloque de redes de arriba se retiran: es lo
+     que hace el portal a partir de aquí. */
+  .pie-min-icontec,
+  .pie-min-social--escritorio { display: none !important; }
+
+  /* La banda azul recibe el mismo aire lateral que la tarjeta. El portal
+     consigue lo mismo dejándole el ancho del 80 %, pero aquí la fila va al
+     ancho del contenido de la página y sin esto las dos marcas quedaban
+     pegadas al borde de la pantalla. El aire vertical sigue en 2 %. */
+  .pie-min-fila--marcas { padding-right: 50px; padding-left: 50px; }
+}
+
+@media (max-width: 767px) {
+  .pie-min-fila--datos,
+  .pie-min-fila--sede,
+  .pie-min-fila--enlaces {
+    padding-right: 30px;
+    padding-left: 30px;
+  }
+  .pie-min-fila--marcas { padding-right: 30px; padding-left: 30px; }
+  .pie-min-tit { font-size: 21px; }
+  .pie-min-politicas { padding-top: 40px; }
+}

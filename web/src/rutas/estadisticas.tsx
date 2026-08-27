@@ -19,8 +19,22 @@ export function Estadisticas() {
 
   if (isLoading || !flujo) return <Cargando texto="Calculando indicadores" />;
 
-  const total = flujo.reduce((s, e) => s + e.actuales, 0);
-  const enCurso = flujo.filter((e) => e.dias_promedio !== null);
+  // `EstadisticaEstado` declara `actuales` y `entradas` como números, pero eso
+  // es una promesa del TIPO, no del servidor: si una fila del endpoint llega
+  // sin conteo, el `reduce` de abajo daba NaN y la tarjeta «Iniciativas
+  // activas» pintaba literalmente «NaN» al Despacho —React lo avisaba en la
+  // consola: «Received NaN for the children attribute»—.
+  //
+  // Se normaliza una vez aquí y no en cada uso, igual que el tablero hace con
+  // `sesion.permisos`: así ninguna cuenta nueva puede volver a envenenarse.
+  const filas = flujo.map((e) => ({
+    ...e,
+    actuales: Number(e.actuales) || 0,
+    entradas: Number(e.entradas) || 0,
+  }));
+
+  const total = filas.reduce((s, e) => s + e.actuales, 0);
+  const enCurso = filas.filter((e) => e.dias_promedio !== null);
   const cuelloBotella = [...enCurso].sort((a, b) => (b.dias_promedio ?? 0) - (a.dias_promedio ?? 0))[0];
   const propuestas = (todas ?? []).filter((i) => i.origen === 'propuesta').length;
 
@@ -59,7 +73,7 @@ export function Estadisticas() {
                 <span className="cifras"> {cuelloBotella.entradas}</span> han pasado en total
               </p>
             </div>
-            {cuelloBotella.actuales > 0 && flujo.find((e) => e.id === cuelloBotella.id) && (
+            {cuelloBotella.actuales > 0 && filas.find((e) => e.id === cuelloBotella.id) && (
               <p className="max-w-xs text-[12.5px] leading-relaxed text-tenue">
                 Un estado con demora alta y sin responsables asignados es la causa
                 más frecuente de que una iniciativa se quede quieta sin que nadie lo note.
@@ -82,7 +96,7 @@ export function Estadisticas() {
         <p className="mb-4 mt-1 text-[13px] text-tenue">
           Qué proporción del trámite está en cada paso, ahora mismo.
         </p>
-        <RielProporcional datos={flujo.map((e) => ({
+        <RielProporcional datos={filas.map((e) => ({
           id: e.id, nombre: e.nombre, color: e.color, valor: e.actuales,
         }))} />
       </Tarjeta>

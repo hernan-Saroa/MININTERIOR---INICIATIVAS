@@ -85,14 +85,16 @@
   .section-title{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
   .badge-num{width:24px;height:24px;border-radius:6px;background:var(--navy);color:#fff;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .section-title h2{font-size:18px;margin:0;font-weight:700;color:var(--text);}
-  .tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px;}
-  .tab{padding:9px 18px;border-radius:999px;border:1px solid var(--line);background:var(--panel);
-    color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;
-    transition:all var(--transicion);white-space:nowrap;box-shadow:var(--sombra-sutil);}
-  .tab:hover{color:var(--text);border-color:var(--blue-dim);box-shadow:var(--sombra-media);}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;align-items:center;}
+  .tab{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid #dbe2ea;background:var(--panel);
+    color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;
+    transition:all var(--transicion);white-space:nowrap;box-shadow:0 1px 2px rgba(16,26,46,0.03);user-select:none;}
+  .tab:hover{color:var(--text);border-color:#b8c6e0;background:#f8fafd;box-shadow:0 2px 6px rgba(16,26,46,0.06);transform:translateY(-1px);}
   .tab.active{background:var(--navy);color:#fff;border-color:var(--navy);
-    box-shadow:0 2px 8px rgba(16,26,46,.25);}
-  .tab .count{opacity:.7;margin-left:5px;font-size:11px;}
+    box-shadow:0 3px 10px rgba(16,26,46,0.22);transform:translateY(-1px);}
+  .tab .count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;transition:all var(--transicion);opacity:1;background:#f1f4f9;color:var(--muted);border:1px solid #e2e8f0;}
+  .tab:hover .count{background:#e6edf8;color:var(--blue);border-color:#cbdcf7;}
+  .tab.active .count{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.35);}
   .direccion-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:16px;flex-wrap:wrap;}
   .direccion-head p{margin:6px 0 0 34px;color:var(--muted);font-size:13.5px;width:100%;max-width:none;line-height:1.5;}
   .add-btn{font-size:13px;font-weight:600;background:var(--panel);border:1px solid var(--blue);
@@ -818,4 +820,171 @@ button.stat-filtro.activa .l{
   input, select, textarea, .cell-editable {
     font-size: 16px;
   }
+}
+
+/* =====================================================================
+   Panel de consulta: buscar, dirección y filtros activos
+
+   Antes eran tres piezas sueltas con tres formas de salir de ellas:
+   una tarjeta con borde para el buscador (una caja dentro de otra caja),
+   el riel de direcciones a pelo debajo, y dos botones de «quitar filtro»
+   en sitios distintos —uno en el rótulo del resumen, para estado y
+   prioridad; otro con estilos en línea junto al nombre de la dirección—.
+   Quien filtraba por dos cosas a la vez tenía que recordar cuál de los
+   dos botones soltaba cuál.
+
+   Ahora es UN panel con tres franjas separadas por una línea: qué se
+   busca, dónde se busca, y qué está aplicado. La última franja solo
+   aparece cuando hay algo aplicado, así que en reposo el panel es un
+   campo de búsqueda y una fila de direcciones, y nada más.
+
+   Contraste comprobado sobre --panel (#ffffff) y --blue-tint (#eaf0fd):
+   --muted 5,26:1 · --blue 6,64:1 · --text 17,26:1. Mínimo exigible 4,5:1
+   (Resolución 1519 de 2020 → WCAG 1.4.3).
+   ===================================================================== */
+.consulta{
+  background:var(--panel);
+  border:1px solid #dbe2ea;
+  border-radius:14px;
+  box-shadow:0 4px 20px -2px rgba(16,26,46,0.05), 0 1px 3px rgba(16,26,46,0.02);
+  padding:18px 22px;
+  margin-bottom:22px;
+  transition:border-color var(--transicion), box-shadow var(--transicion);
+}
+
+/* Las franjas. Separador visual nítido y moderno */
+.consulta-franja + .consulta-franja{
+  margin-top:16px;padding-top:16px;border-top:1px solid #eef2f6;
+}
+
+.consulta-rotulo{
+  display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--muted);margin-bottom:9px;
+}
+
+/* ---------------------------------------------------------------------
+   El campo. Estilo spotlight con halo de enfoque institucional GOV.CO
+   --------------------------------------------------------------------- */
+.consulta-campo{
+  display:flex;align-items:center;gap:10px;
+  border:1.5px solid #dbe2ea;border-radius:10px;background:var(--panel-2);
+  padding:0 12px;min-height:44px;
+  transition:border-color var(--transicion),box-shadow var(--transicion),
+    background var(--transicion);
+}
+.consulta-campo:focus-within{
+  border-color:var(--blue);background:var(--panel);
+  box-shadow:0 0 0 3.5px var(--blue-tint);
+}
+.consulta-campo .lupa{flex-shrink:0;color:var(--muted);transition:all var(--transicion);}
+.consulta-campo:focus-within .lupa{color:var(--blue);transform:scale(1.05);}
+
+.consulta-campo input{
+  flex:1;min-width:0;border:0;background:none;outline:none;
+  font:inherit;font-size:14px;font-weight:500;color:var(--text);padding:11px 0;
+}
+.consulta-campo input::placeholder{color:var(--muted);font-weight:400;}
+/* La cruz nativa de type=search se sustituye por la nuestra, que sí tiene
+   nombre accesible y área tocable de 44 px en móvil. */
+.consulta-campo input::-webkit-search-cancel-button{-webkit-appearance:none;display:none;}
+
+.consulta-borrar{
+  flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+  width:26px;height:26px;border-radius:50%;border:0;background:#eaedf3;
+  color:var(--muted);cursor:pointer;transition:all var(--transicion);
+}
+.consulta-borrar:hover{background:#d8deeb;color:var(--text);transform:scale(1.08);}
+
+/* Pista del atajo de teclado. */
+.consulta-atajo{
+  flex-shrink:0;font-family:inherit;font-size:11px;font-weight:700;
+  color:var(--muted);background:var(--panel);
+  border:1px solid #cbd5e1;border-bottom:2px solid #94a3b8;border-radius:5px;
+  padding:1px 7px;line-height:1.5;box-shadow:0 1px 2px rgba(0,0,0,0.04);
+}
+@media (pointer:coarse){ .consulta-atajo{display:none;} }
+
+.consulta-ayuda{margin:9px 0 0;font-size:11.5px;line-height:1.5;color:var(--muted);}
+.consulta-ayuda b{color:var(--text);font-weight:600;}
+.consulta-ayuda code{
+  font-family:var(--font-mono,ui-monospace,Consolas,monospace);
+  font-size:11px;font-weight:600;background:#edf2f7;border:1px solid #dbe2ea;
+  border-radius:4px;padding:1px 5px;color:var(--text);
+}
+
+/* ---------------------------------------------------------------------
+   El riel de direcciones dentro del panel.
+   --------------------------------------------------------------------- */
+.consulta .tabs{margin-bottom:0;}
+@media (max-width:860px){
+  .consulta .tabs{margin:0 -18px;padding:0 18px 6px;}
+  .consulta .tabs-riel::after{
+    right:-18px;width:34px;
+    background:linear-gradient(to right, rgba(255,255,255,0), var(--panel));
+  }
+}
+@media (max-width:359px){
+  .consulta{padding:13px 14px;}
+  .consulta .tabs{margin:0 -14px;padding:0 14px 6px;}
+  .consulta .tabs-riel::after{right:-14px;}
+}
+
+/* ---------------------------------------------------------------------
+   Franja de resultado y filtros activos.
+   --------------------------------------------------------------------- */
+.consulta-resultado{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px 18px;
+  margin-top:15px;padding-top:14px;border-top:1px solid #eef2f6;
+}
+.consulta-cuenta{margin:0;font-size:13px;font-weight:500;color:var(--muted);display:inline-flex;align-items:center;gap:4px;}
+.consulta-cuenta b{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;font-size:13.5px;}
+.consulta-cuenta.vacio b{color:var(--amber);}
+
+.consulta-chips{display:flex;align-items:center;flex-wrap:wrap;gap:8px;}
+.consulta-chips-rotulo{
+  font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--muted);margin-right:2px;
+}
+
+.chip-filtro{
+  display:inline-flex;align-items:center;gap:6px;
+  font:inherit;font-size:12px;font-weight:600;color:var(--blue);
+  background:var(--blue-tint);border:1px solid #cddaf7;
+  border-radius:20px;padding:4px 10px;cursor:pointer;
+  transition:all var(--transicion);box-shadow:0 1px 2px rgba(33,81,209,0.05);
+}
+.chip-filtro:hover{background:var(--blue);border-color:var(--blue);color:#fff;transform:translateY(-1px);box-shadow:0 3px 8px rgba(33,81,209,0.25);}
+.chip-filtro .chip-clave{font-weight:500;}
+.chip-filtro .chip-cruz{flex-shrink:0;transition:transform var(--transicion);}
+.chip-filtro:hover .chip-cruz{transform:scale(1.15);}
+
+.quitar-filtros{
+  font:inherit;font-size:12px;font-weight:600;color:var(--muted);
+  background:none;border:1px dashed #cbd5e1;border-radius:20px;
+  padding:4px 11px;cursor:pointer;transition:all var(--transicion);
+}
+.quitar-filtros:hover{color:var(--red);border-color:#fca5a5;background:var(--red-tint);}
+
+@media (pointer:coarse){
+  .chip-filtro,.consulta-borrar{position:relative;}
+  .chip-filtro::after,.consulta-borrar::after{
+    content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    min-width:44px;min-height:44px;width:100%;height:100%;
+  }
+}
+
+@media (max-width:520px){
+  .consulta-resultado{flex-direction:column;align-items:flex-start;gap:9px;}
+}
+
+@media print{
+  .consulta-franja,
+  .consulta-chips .quitar-filtros{display:none !important;}
+  .consulta{border:0;box-shadow:none;padding:0;margin-bottom:10px;}
+  .consulta-resultado{gap:4px 10px;margin-top:0;padding-top:0;border-top:0;}
+  .consulta-cuenta{font-size:9pt;color:#000;}
+  .chip-filtro{
+    background:none;border:1px solid #000;color:#000;font-size:8.5pt;padding:1px 7px;
+  }
+  .chip-filtro .chip-cruz{display:none;}
 }

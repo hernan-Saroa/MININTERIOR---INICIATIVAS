@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent as TeclaReact } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Paperclip, ChevronRight } from 'lucide-react';
+import { Search, Paperclip, ChevronRight, X } from 'lucide-react';
 import { api, ErrorApi, SIN_CONEXION } from '../api/cliente';
 import type { Iniciativa, Transicion, Estado, Movimiento, Direccion, CamposEditables } from '../api/tipos';
 import { ModalAuth, type ModoAuth } from '../ui/modal-auth';
 import { ModalRadicarIniciativa } from '../ui/modal-radicar';
+import { PieInstitucional } from '../ui/pie-institucional';
 import { useDialogo } from '../ui/base';
 import '../tablero-aprobado.css';
 
@@ -368,6 +369,146 @@ export function Tablero({ publico = false }: { publico?: boolean }) {
     setParametrosUrl(p);
   }
 
+  // =====================================================================
+  // Panel de consulta: buscar, dirección y filtros activos.
+  // =====================================================================
+
+  // Las direcciones se arman como UNA lista con «Todas» al frente, en vez de
+  // un botón suelto más un `map`. Es lo que permite recorrer el riel con las
+  // flechas: hace falta el índice de la que está marcada, y con «Todas»
+  // fuera de la lista no había índice que mover.
+  const opcionesDireccion = [
+    { id: 'todas', etiqueta: 'Todas', titulo: 'Mostrar iniciativas de todas las direcciones' },
+    ...(direcciones ?? []).map((d) => ({
+      id: d.id,
+      etiqueta: d.nombre_corto,
+      titulo: `Ver solo las de ${d.nombre}`,
+    })),
+  ];
+  const cuentaDireccion = (id: string) => id === 'todas'
+    ? paraPestanas.length
+    : paraPestanas.filter((i) => i.direccion_id === id).length;
+
+  const refBuscar = useRef<HTMLInputElement | null>(null);
+  const refRiel = useRef<HTMLDivElement | null>(null);
+
+  function elegirDireccion(id: string) {
+    // Volver a pulsar la dirección marcada devuelve a «Todas». Es la salida
+    // que la gente intenta sola, sin que nadie se la explique.
+    setDireccionId(id === activa ? 'todas' : id);
+    setAbierta(null);
+  }
+
+  // Flechas, Inicio y Fin sobre el riel, que es lo que corresponde a un
+  // grupo de opciones excluyentes. Antes había que tabular por las siete
+  // direcciones una a una para llegar a la última.
+  function navegarRiel(e: TeclaReact<HTMLDivElement>) {
+    const salto: Record<string, number> = {
+      ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1,
+    };
+    const total = opcionesDireccion.length;
+    const i = Math.max(0, opcionesDireccion.findIndex((o) => o.id === activa));
+    let j: number;
+    if (e.key === 'Home') j = 0;
+    else if (e.key === 'End') j = total - 1;
+    else if (e.key in salto) j = (i + salto[e.key] + total) % total;
+    else return;
+    e.preventDefault();
+    setDireccionId(opcionesDireccion[j].id);
+    setAbierta(null);
+    // El nodo sobrevive al re-render —va con `key`— así que se le puede dar
+    // el foco ya; el navegador lo trae solo al campo de visión del riel.
+    refRiel.current?.querySelectorAll<HTMLButtonElement>('.tab')[j]?.focus();
+  }
+
+  // En móvil el riel se desliza y la dirección marcada puede quedar fuera de
+  // vista: al entrar por un enlace con ?direccion=… no se veía cuál estaba
+  // puesta. Se centra moviendo `scrollLeft` a mano y no con
+  // `scrollIntoView`, que arrastraría también el desplazamiento vertical de
+  // la página hasta el riel.
+  useEffect(() => {
+    const riel = refRiel.current;
+    if (!riel) return;
+    // Si el riel cabe entero no hay nada que mover (y en jsdom, donde no hay
+    // medidas, ambos valen 0 y sale por aquí).
+    if (riel.scrollWidth <= riel.clientWidth) return;
+    const marcada = riel.querySelector<HTMLElement>('.tab.active');
+    if (!marcada) return;
+    const caja = riel.getBoundingClientRect();
+    const pildora = marcada.getBoundingClientRect();
+    const centro = riel.scrollLeft + (pildora.left - caja.left)
+      - (caja.width - pildora.width) / 2;
+    riel.scrollLeft = Math.max(0, centro);
+  }, [activa, direcciones]);
+
+  // «/» lleva al buscador desde cualquier punto de la página: es el atajo
+  // que ya conoce quien usa GitHub, Gmail o Jira. Se ignora mientras se
+  // escribe en un campo o en una celda editable —si no, no se podría teclear
+  // una barra— y con un diálogo abierto, que tiene su propio foco atrapado.
+  useEffect(() => {
+    function alPulsar(e: globalThis.KeyboardEvent) {
+      if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+      const o = e.target as HTMLElement | null;
+      // `isContentEditable` no basta: jsdom no lo implementa —así que la
+      // prueba pasaba en verde mientras el atajo pisaba la escritura en las
+      // celdas de la tabla— y en el navegador tampoco cubre el foco puesto
+      // dentro de un hijo de la región editable. El atributo sí.
+      if (o && (
+        /^(INPUT|TEXTAREA|SELECT)$/.test(o.tagName)
+        || o.isContentEditable
+        || o.closest('[contenteditable="true"]')
+      )) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      e.preventDefault();
+      refBuscar.current?.focus();
+      refBuscar.current?.select();
+    }
+    document.addEventListener('keydown', alPulsar);
+    return () => document.removeEventListener('keydown', alPulsar);
+  }, []);
+
+  // Lo que está aplicado, en un solo sitio y cada cosa con su propia salida.
+  //
+  // Antes había dos botones de «quitar filtro» en dos lugares distintos —uno
+  // en el rótulo del resumen para estado y prioridad, otro con estilos en
+  // línea junto al nombre de la dirección— y ninguno de los dos soltaba la
+  // búsqueda de texto: para eso había que vaciar el campo a mano.
+  const nombreEstadoFiltrado = estados?.find((e) => e.clave === filtroEstado)?.nombre ?? filtroEstado;
+  const fichasFiltro = [
+    consulta && {
+      clave: 'Búsqueda',
+      valor: `«${busqueda.trim()}»`,
+      quitar: () => setBusqueda(''),
+    },
+    activa !== 'todas' && {
+      clave: 'Dirección',
+      valor: direccion?.nombre_corto ?? activa,
+      quitar: () => setDireccionId('todas'),
+    },
+    filtroEstado && {
+      clave: 'Estado',
+      valor: nombreEstadoFiltrado,
+      quitar: () => alternarFiltro({ estado: filtroEstado }),
+    },
+    filtroPrioridad && {
+      clave: 'Prioridad',
+      valor: filtroPrioridad,
+      quitar: () => alternarFiltro({ prioridad: filtroPrioridad }),
+    },
+  ].filter(Boolean) as { clave: string; valor: string; quitar: () => void }[];
+
+  function limpiarTodo() {
+    const p = new URLSearchParams(parametrosUrl);
+    for (const clave of ['q', 'direccion', 'estado', 'prioridad']) p.delete(clave);
+    setParametrosUrl(p);
+    setAbierta(null);
+  }
+
+  // Denominador de la línea de resultado: el registro completo. Mientras la
+  // petición está en vuelo vale 0, y entonces no se muestra —«4 de 0» es
+  // peor que no decir nada—.
+  const totalRegistro = (todas ?? []).length;
+
   // La fecha de corte sale del SERVIDOR, no del reloj del navegador. Este
   // documento se imprime y se radica: un equipo con la hora mal puesta lo
   // fechaba mal y nadie lo notaba. Si el servidor no la da —versión antigua
@@ -608,20 +749,11 @@ export function Tablero({ publico = false }: { publico?: boolean }) {
             <span className="alcance-resumen">
               {activa === 'todas' ? 'todas las direcciones' : (direccion?.nombre_corto ?? activa)}
             </span>
-            {!sinFiltros && (
-              // Salida del filtro. Sin ella hay que recordar cuál de las
-              // cinco tarjetas se pulsó para poder soltarla.
-              <button
-                type="button"
-                className="quitar-filtros"
-                onClick={() => { alternarFiltro(null); setAbierta(null); }}
-              >
-                Quitar filtro
-                {filtroEstado && `: ${resumen.find((r) => r.filtro && 'estado' in r.filtro && r.filtro.estado === filtroEstado)?.l ?? filtroEstado}`}
-                {filtroEstado && filtroPrioridad && ' +'}
-                {filtroPrioridad && ` prioridad ${filtroPrioridad}`}
-              </button>
-            )}
+            {/* Aquí vivía un botón de «Quitar filtro» que solo soltaba el
+                estado y la prioridad. Se movió al panel de consulta, donde
+                ahora están las fichas de TODO lo aplicado —búsqueda y
+                dirección incluidas— cada una con su propia salida. Las
+                tarjetas siguen marcándose y soltándose al pulsarlas. */}
           </div>
           {/* Las tarjetas conservan la clase `.stat` del diseño aprobado —su
               borde superior azul, su tipografía, su relleno— y solo se les
@@ -665,106 +797,178 @@ export function Tablero({ publico = false }: { publico?: boolean }) {
 
           <div className="section-title"><div className="badge-num">2</div><h2>Iniciativas por dirección</h2></div>
 
-          {/* Barra de consulta pública por código o palabra clave y radicación */}
-          {/* La instrucción vivía solo en el placeholder, que se corta en el
-              celular y desaparece en cuanto se escribe. Ahora es una etiqueta
-              visible y permanente. El campo va a 16 px porque Safari en iOS
-              hace zoom automático sobre cualquier campo de menos de 16 px, y
-              ese zoom deja la página descuadrada. */}
-          <div className="mb-4 rounded-lg border border-linea bg-panel p-3 shadow-sm">
-            <label htmlFor="consulta-tramite" className="mb-1.5 block text-[12px] font-bold text-tinta">
-              Consultar el estado de un trámite
-            </label>
-            <div className="flex items-center gap-2.5 rounded-md border border-linea bg-panel-2 px-2.5 py-1">
-              <Search size={16} className="shrink-0 text-tenue" aria-hidden="true" />
-              <input
-                id="consulta-tramite"
-                type="search"
-                inputMode="search"
-                enterKeyHint="search"
-                autoComplete="off"
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                placeholder="INI-2026-0001, o una palabra del título"
-                className="w-full min-w-0 bg-transparent py-2 text-[16px] text-tinta placeholder:text-tenue focus:outline-none sm:text-[14px]"
-              />
-              {busqueda && (
-                <button
-                  type="button"
-                  onClick={() => setBusqueda('')}
-                  aria-label="Limpiar la búsqueda"
-                  className="shrink-0 rounded px-2 py-1.5 text-[11.5px] font-semibold text-tenue hover:bg-panel hover:text-tinta"
+          {/* ==========================================================
+              Panel de consulta. Tres franjas: qué se busca, dónde se
+              busca, y qué está aplicado.
+
+              La instrucción no vive en el placeholder —se corta en el
+              celular y desaparece al escribir—: va en una etiqueta visible
+              y permanente. El campo se sube a 16 px bajo 860 px porque
+              Safari en iOS amplía la página sobre cualquier campo menor y
+              no vuelve al salir; la regla está en el CSS, para todos.
+              ========================================================== */}
+          <div className="consulta">
+            <div className="consulta-franja">
+              <label htmlFor="consulta-tramite" className="consulta-rotulo">
+                Buscar un trámite
+              </label>
+              <div className="consulta-campo">
+                <Search size={17} className="lupa" aria-hidden="true" />
+                <input
+                  id="consulta-tramite"
+                  ref={refBuscar}
+                  type="search"
+                  inputMode="search"
+                  enterKeyHint="search"
+                  autoComplete="off"
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  // Escape vacía el campo. Es lo que ya hace el navegador en
+                  // su propia barra de búsqueda, y ahorra borrar letra a
+                  // letra o ir a buscar el botón con el ratón.
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape' && busqueda) {
+                      e.stopPropagation();
+                      setBusqueda('');
+                    }
+                  }}
+                  placeholder="Código INI-2026-0001, título u objeto"
+                  aria-describedby="ayuda-consulta"
+                />
+                {busqueda ? (
+                  <button
+                    type="button"
+                    className="consulta-borrar"
+                    onClick={() => { setBusqueda(''); refBuscar.current?.focus(); }}
+                    aria-label="Limpiar la búsqueda"
+                    title="Limpiar la búsqueda (Esc)"
+                  >
+                    <X size={15} aria-hidden="true" />
+                  </button>
+                ) : (
+                  // Solo cuando el campo está vacío: con texto dentro, ese
+                  // hueco lo necesita el botón de limpiar.
+                  <kbd className="consulta-atajo" aria-hidden="true">/</kbd>
+                )}
+              </div>
+              <p className="consulta-ayuda" id="ayuda-consulta">
+                Busca en <b>todas</b> las direcciones por código, título u objeto.
+                El código se lo entregó el sistema al registrar la iniciativa.
+                Pulse <code>/</code> desde cualquier punto de la página para volver aquí.
+              </p>
+            </div>
+
+            <div className="consulta-franja">
+              <span className="consulta-rotulo" id="rotulo-direccion">Dirección</span>
+              {/* El envoltorio solo existe para el degradado del borde
+                  derecho, que en móvil insinúa que el riel sigue. */}
+              <div className="tabs-riel">
+                <div
+                  className="tabs"
+                  // Un grupo de opciones excluyentes, que es lo que son:
+                  // antes iban con aria-pressed, como siete interruptores
+                  // independientes que resultaban no serlo.
+                  role="radiogroup"
+                  aria-labelledby="rotulo-direccion"
+                  ref={refRiel}
+                  onKeyDown={navegarRiel}
                 >
-                  Limpiar
-                </button>
+                  {opcionesDireccion.map((o) => {
+                    const marcada = o.id === activa;
+                    const cuenta = cuentaDireccion(o.id);
+                    return (
+                      <button
+                        key={o.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={marcada}
+                        // Tabulador itinerante: solo la marcada entra en el
+                        // recorrido del tabulador, y dentro del riel se anda
+                        // con las flechas.
+                        tabIndex={marcada ? 0 : -1}
+                        className={`tab${marcada ? ' active' : ''}`}
+                        onClick={() => elegirDireccion(o.id)}
+                        // La cuenta respeta el estado y la prioridad puestos,
+                        // así que puede salir en cero. La píldora sigue
+                        // pulsable —desactivarla rompería el recorrido con
+                        // las flechas— pero el título avisa de que ahí no hay
+                        // nada, en vez de dejar que se descubra pulsando.
+                        title={marcada && o.id !== 'todas'
+                          ? 'Quitar el filtro y ver todas'
+                          : cuenta === 0
+                            ? `${o.titulo} — ninguna con los filtros puestos`
+                            : o.titulo}
+                      >
+                        {o.etiqueta}
+                        <span className="count">{cuenta}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Franja de resultado. Va siempre montada, no solo cuando hay
+                filtros: `role="status"` solo se anuncia si la región ya
+                existía en el árbol antes de cambiar de texto. Y dice cuántas
+                filas tiene la tabla justo encima de la tabla, que es donde
+                se necesita el dato. */}
+            <div className="consulta-resultado">
+              <p
+                className={`consulta-cuenta${totalIniciativas === 0 ? ' vacio' : ''}`}
+                role="status"
+              >
+                <b className="cifras">{totalIniciativas}</b>
+                {totalIniciativas === 1 ? ' iniciativa' : ' iniciativas'}
+                {fichasFiltro.length > 0 && totalRegistro > 0 && (
+                  <> de <b className="cifras">{totalRegistro}</b></>
+                )}
+              </p>
+
+              {fichasFiltro.length > 0 && (
+                <div className="consulta-chips">
+                  <span className="consulta-chips-rotulo">Filtros</span>
+                  {fichasFiltro.map((f) => (
+                    <button
+                      key={f.clave}
+                      type="button"
+                      className="chip-filtro"
+                      onClick={f.quitar}
+                      // El rótulo visible se lee «Estado: En comisión», pero
+                      // el espacio lo pone el `gap` del flex, no el texto: sin
+                      // aria-label el lector de pantalla anunciaría
+                      // «Estado:En comisión» y sin decir que se puede quitar.
+                      aria-label={`Quitar el filtro de ${f.clave.toLowerCase()}: ${f.valor}`}
+                      title={`Quitar el filtro de ${f.clave.toLowerCase()}: ${f.valor}`}
+                    >
+                      <span className="chip-clave">{f.clave}:</span>
+                      {f.valor}
+                      <X size={12} className="chip-cruz" aria-hidden="true" />
+                    </button>
+                  ))}
+                  {/* Con un solo filtro puesto sería el mismo botón dos
+                      veces: su ficha ya lo quita. */}
+                  {fichasFiltro.length > 1 && (
+                    <button type="button" className="quitar-filtros" onClick={limpiarTodo}>
+                      Quitar todos
+                    </button>
+                  )}
+                </div>
               )}
             </div>
-            <p className="mt-1.5 text-[11.5px] leading-snug text-tenue">
-              Busca en todas las direcciones. El código se lo entregó el sistema
-              al registrar la iniciativa.
-            </p>
-          </div>
-
-          {/* El envoltorio solo existe para el degradado del borde derecho, que
-              en móvil insinúa que el riel sigue. La clase .tabs y su
-              comportamiento no cambian. */}
-          <div className="tabs-riel">
-          <div className="tabs" role="group" aria-label="Filtrar por dirección">
-            <button
-              type="button"
-              className={`tab${activa === 'todas' ? ' active' : ''}`}
-              onClick={() => { setDireccionId('todas'); setAbierta(null); }}
-              aria-pressed={activa === 'todas'}
-              title="Mostrar iniciativas de todas las direcciones"
-            >
-              Todas
-              <span className="count">{paraPestanas.length}</span>
-            </button>
-            {(direcciones ?? []).map((d) => (
-              <button
-                key={d.id}
-                type="button"
-                className={`tab${d.id === activa ? ' active' : ''}`}
-                aria-pressed={d.id === activa}
-                onClick={() => {
-                  // Si vuelve a hacer clic en la misma dirección, desactiva el filtro y muestra todas
-                  setDireccionId(d.id === activa ? 'todas' : d.id);
-                  setAbierta(null);
-                }}
-                title={d.id === activa ? 'Clic para desmarcar y ver todas' : `Filtrar por ${d.nombre}`}
-              >
-                {d.nombre_corto}
-                <span className="count">{paraPestanas.filter((i) => i.direccion_id === d.id).length}</span>
-              </button>
-            ))}
-          </div>
           </div>
 
           {direccion && (
             <div className="direccion-head">
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <h2 style={{ fontSize: 16, margin: 0, fontWeight: 700 }}>{direccion.nombre}</h2>
-                  {activa !== 'todas' && (
-                    <button
-                      type="button"
-                      onClick={() => setDireccionId('todas')}
-                      style={{
-                        fontSize: '11.5px',
-                        fontWeight: 600,
-                        color: 'var(--blue, #0066cc)',
-                        background: 'var(--blue-light, #e6f0fa)',
-                        border: '1px solid rgba(0, 102, 204, 0.2)',
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                      }}
-                      title="Volver a la vista consolidada de todas las direcciones"
-                    >
-                      ✕ Quitar filtro (Ver todas)
-                    </button>
-                  )}
-                </div>
+                {/* Aquí había un tercer botón de «✕ Quitar filtro (Ver
+                    todas)», con estilos en línea y un color propio que no
+                    era ninguno de la paleta. Era la tercera forma de soltar
+                    un filtro en la misma pantalla: ahora la dirección se
+                    suelta desde su ficha en el panel de consulta o volviendo
+                    a pulsar su píldora. Este rótulo se queda como lo que
+                    es: el nombre del alcance de la tabla de abajo. */}
+                <h2 style={{ fontSize: 16, margin: 0, fontWeight: 700 }}>{direccion.nombre}</h2>
                 <p>{direccion.descripcion}</p>
               </div>
               <button
@@ -978,6 +1182,12 @@ export function Tablero({ publico = false }: { publico?: boolean }) {
           </footer>
         </div>
       </main>
+
+      {/* Pie institucional, réplica del de mininterior.gov.co. Va fuera de
+          <main> porque no es contenido del tablero: es la ficha de la
+          entidad. El descargo y el botón de exportar siguen dentro de la
+          tarjeta de la tabla, que es lo que describen. */}
+      <PieInstitucional />
 
       {detalle && estados && (
         <PanelFlujo iniciativa={detalle} estados={estados} onCerrar={() => setDetalle(null)} />
