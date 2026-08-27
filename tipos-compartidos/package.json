@@ -1,0 +1,17 @@
+{
+  "name": "@mininterior/tipos",
+  "version": "1.0.0",
+  "description": "Tipos TypeScript compartidos entre los microservicios y frontends del sistema de iniciativas legislativas",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  },
+  "files": ["dist"],
+  "license": "UNLICENSED",
+  "private": true
+}

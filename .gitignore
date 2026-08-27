@@ -1,0 +1,34 @@
+# Dependencias
+node_modules/
+*/node_modules/
+
+# Builds y temporales
+dist/
+dist-ssr/
+dist-test/
+*/dist/
+.vite/
+*/.vite/
+web/.vite/
+
+# Secretos y variables de entorno
+.env
+.env.local
+.env.*.local
+*/.env
+*/.env.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Backups y volcados SQL locales
+respaldo_*.sql
+*.sql.gz
+*.zip

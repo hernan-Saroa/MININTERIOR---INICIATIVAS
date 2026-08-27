@@ -1,0 +1,28 @@
+{
+  "files.eol": "\n",
+  "editor.formatOnSave": false,
+  "typescript.tsdk": "web/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "[sql]": { "editor.tabSize": 2 },
+  "files.associations": { "*.sql": "sql" },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/dist-ssr": true,
+    "**/dist-test": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true
+  },
+  "sqltools.connections": [
+    {
+      "name": "Iniciativas (desarrollo)",
+      "driver": "MySQL",
+      "server": "127.0.0.1",
+      "port": 3306,
+      "database": "iniciativas_legislativas",
+      "username": "iniciativas_app"
+    }
+  ]
+}

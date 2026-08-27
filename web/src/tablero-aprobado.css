@@ -1,0 +1,821 @@
+/* =====================================================================
+   Diseño del tablero.
+
+   Base portada desde el frontend original, elevada con tipografía Inter,
+   sombras sutiles, transiciones y micro-interacciones.
+
+   Este archivo se puede modificar para mejorar el diseño. Lo que NO se
+   negocia es lo que hay debajo del diseño:
+
+   · **Contraste WCAG 2.1 AA.** La Resolución 1519 de 2020 del MinTIC lo
+     exige a las entidades del Estado. `node scripts/verificar-contraste.js`
+     lo comprueba y falla si algún par baja del mínimo. Antes de cambiar
+     un color de esta paleta, ejecútelo.
+   · **Identidad institucional:** navy GOV.CO, azul de acción, logos.
+   · **Responsividad:** móvil primero, y la tabla se vuelve tarjeta bajo
+     860 px.
+   · **La estructura de datos y los nombres de clase** que el JSX usa.
+
+   Cualquier cambio visual conviene reflejarlo también en
+   `referencia/tablero-aprobado.html`, que es el registro de la versión
+   original sin React. `node referencia/comparar-diseno.mjs` informa de las
+   diferencias.
+   ===================================================================== */
+
+:root{
+    /* La paleta cumple contraste AA. Los tres tonos con comentario se
+       oscurecieron por eso: los originales estaban entre 3,02:1 y 4,47:1
+       sobre sus propios tintes, con el mínimo en 4,5:1. El matiz se
+       conservó moviendo solo la luminosidad. */
+    --navy:#101a2e; --navy-2:#1a2740; --bg:#f4f6f9; --panel:#ffffff; --panel-2:#f7f8fb;
+    --line:#e1e5ec; --text:#151b26;
+    --muted:#666c7a;      /* era #69707e — 4,36:1 sobre el tinte azul */
+    --blue:#2151d1; --blue-dim:#5b7fdb;
+    --blue-tint:#eaf0fd;
+    --green:#1c7c55;      /* era #1f8a5f — 3,89:1 sobre su tinte */
+    --green-tint:#e9f6ef; --red:#c0392b; --red-tint:#fbebe9;
+    --amber:#9d5f16;      /* era #c9791c — 3,02:1 sobre su tinte */
+    --amber-tint:#fdf1e2; --radius:12px;
+    --sombra-sutil: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+    --sombra-media: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+    --sombra-elevada: 0 8px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+    --transicion: 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:'Inter','Helvetica Neue',Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;font-feature-settings:'cv11','ss01';}
+  .wrap{max-width:1680px;width:100%;margin:0 auto;padding:0 32px 80px;}
+  .inner{padding:0;}
+  .navy-bar{background:var(--navy);color:#fff;padding:14px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  .navy-bar .eyebrow{max-width:1680px;width:100%;margin:0 auto;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#c7d2ea;font-weight:600;}
+  .sync-status{font-size:11px;color:#c7d2ea;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:#4fbf7a;flex-shrink:0;}
+  .sync-dot.saving{background:#e0a63c;}
+  .sync-dot.error{background:#d5564a;}
+  #usuario-barra{display:inline-flex;align-items:center;gap:10px;margin-right:14px;}
+  .usuario-nombre{opacity:.85;}
+  .usuario-salir{background:none;border:1px solid rgba(255,255,255,.35);color:inherit;font:inherit;
+    font-size:11px;padding:2px 9px;border-radius:3px;cursor:pointer;}
+  .usuario-salir:hover{background:rgba(255,255,255,.12);}
+  header.page-head{background:var(--panel);border-bottom:1px solid var(--line);padding:28px 0 24px;
+    box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+  header.page-head .inner{max-width:1680px;width:100%;margin:0 auto;padding:0 32px;}
+  h1{font-size:28px;margin:0 0 8px;font-weight:800;letter-spacing:-.02em;color:var(--text);}
+  .sub{color:var(--muted);font-size:14.5px;line-height:1.65;width:100%;max-width:none;}
+  .meta-row{display:flex;gap:48px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line);flex-wrap:wrap;}
+  .meta-item .l{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:4px;}
+  .meta-item .v{font-size:14px;color:var(--text);font-weight:600;}
+  .content{padding-top:28px;}
+  .notice{font-size:12.5px;color:var(--muted);background:var(--blue-tint);border:1px solid #cddaf7;
+    border-left:3px solid var(--blue);border-radius:8px;padding:13px 18px;margin-bottom:28px;
+    line-height:1.6;box-shadow:var(--sombra-sutil);}
+  .notice b{color:var(--text);}
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:32px;}
+  .stat{background:var(--panel);border:1px solid var(--line);
+    border-top:3px solid var(--blue);border-radius:var(--radius);padding:18px 20px;
+    box-shadow:var(--sombra-sutil);transition:all var(--transicion);position:relative;overflow:hidden;}
+  .stat::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg, var(--blue), var(--blue-dim));opacity:0;
+    transition:opacity var(--transicion);}
+  .stat:hover{box-shadow:var(--sombra-media);transform:translateY(-1px);}
+  .stat:hover::after{opacity:1;}
+  .stat .n{font-size:30px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums;line-height:1;}
+  .stat .l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:7px;font-weight:700;}
+  .section-title{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .badge-num{width:24px;height:24px;border-radius:6px;background:var(--navy);color:#fff;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .section-title h2{font-size:18px;margin:0;font-weight:700;color:var(--text);}
+  .tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px;}
+  .tab{padding:9px 18px;border-radius:999px;border:1px solid var(--line);background:var(--panel);
+    color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;
+    transition:all var(--transicion);white-space:nowrap;box-shadow:var(--sombra-sutil);}
+  .tab:hover{color:var(--text);border-color:var(--blue-dim);box-shadow:var(--sombra-media);}
+  .tab.active{background:var(--navy);color:#fff;border-color:var(--navy);
+    box-shadow:0 2px 8px rgba(16,26,46,.25);}
+  .tab .count{opacity:.7;margin-left:5px;font-size:11px;}
+  .direccion-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:16px;flex-wrap:wrap;}
+  .direccion-head p{margin:6px 0 0 34px;color:var(--muted);font-size:13.5px;width:100%;max-width:none;line-height:1.5;}
+  .add-btn{font-size:13px;font-weight:600;background:var(--panel);border:1px solid var(--blue);
+    color:var(--blue);padding:10px 18px;border-radius:8px;cursor:pointer;white-space:nowrap;
+    transition:all var(--transicion);box-shadow:var(--sombra-sutil);}
+  .add-btn:hover{background:var(--blue);color:#fff;box-shadow:var(--sombra-media);
+    transform:translateY(-1px);}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius);overflow:hidden;box-shadow:var(--sombra-sutil);}
+  thead th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--muted);background:var(--panel-2);padding:12px 14px;
+    border-bottom:1px solid var(--line);font-weight:700;}
+  tbody td{padding:13px 14px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr{transition:background var(--transicion);}
+  tbody tr:hover{background:rgba(33,81,209,.03);}
+  .cell-editable{outline:none;min-width:60px;line-height:1.4;}
+  .cell-editable:focus{background:var(--blue-tint);border-radius:4px;box-shadow:0 0 0 1px var(--blue-dim);}
+  /* Señal de que el campo es editable, y guía cuando está vacío */
+  .cell-editable:hover{background:var(--panel-2);border-radius:4px;}
+  .cell-editable:empty::before{content:attr(data-vacio);color:var(--muted);
+    font-style:italic;font-weight:400;opacity:.8;}
+  .cell-editable:focus:empty::before{opacity:.45;}
+  .col-iniciativa{width:22%;font-weight:700;color:var(--text);}
+  .col-objeto{width:25%;color:var(--muted);font-size:13px;}
+  .col-num{width:9%;font-size:12.5px;color:var(--muted);}
+  .col-fecha{width:8%;font-size:12.5px;color:var(--muted);white-space:nowrap;}
+  .col-estado{width:12%;}
+  .col-prior{width:8%;}
+  .col-del{width:36px;text-align:center;}
+  select.estado-sel, select.prior-sel{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;border:1px solid transparent;border-radius:20px;padding:5px 11px;cursor:pointer;appearance:none;-webkit-appearance:none;}
+  .estado-sel[data-v="Radicado"]{color:var(--blue);background:var(--blue-tint);}
+  .estado-sel[data-v="En comisión"]{color:var(--amber);background:var(--amber-tint);}
+  .estado-sel[data-v="Aprobado"]{color:var(--green);background:var(--green-tint);}
+  .estado-sel[data-v="Archivado"]{color:var(--red);background:var(--red-tint);}
+  .estado-sel[data-v="En formulación"]{color:var(--muted);background:var(--panel-2);}
+  .prior-sel[data-v="Alta"]{color:var(--red);background:var(--red-tint);}
+  .prior-sel[data-v="Media"]{color:var(--amber);background:var(--amber-tint);}
+  .prior-sel[data-v="Baja"]{color:var(--muted);background:var(--panel-2);}
+  .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;}
+  .del-btn:hover{color:var(--red);}
+  .empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;background:var(--panel);border:1px solid var(--line);border-top:none;border-radius:0 0 var(--radius) var(--radius);}
+  .loading{text-align:center;padding:60px 20px;color:var(--muted);font-size:13.5px;}
+  .col-docs{width:8%;text-align:center;}
+  .docs-btn{font-size:12px;font-weight:600;background:var(--panel-2);border:1px solid var(--line);
+    color:var(--muted);padding:6px 11px;border-radius:20px;cursor:pointer;white-space:nowrap;
+    transition:all var(--transicion);}
+  .docs-btn:hover{border-color:var(--blue-dim);color:var(--text);box-shadow:var(--sombra-sutil);}
+  .docs-btn.has-docs{border-color:var(--blue-dim);color:var(--blue);background:var(--blue-tint);}
+  .docs-btn.open{background:var(--navy);color:#fff;border-color:var(--navy);
+    box-shadow:0 2px 6px rgba(16,26,46,.2);}
+  .docs-row td{background:var(--panel-2);padding:16px 20px;border-bottom:1px solid var(--line);}
+  .docs-panel{font-size:13px;}
+  .docs-list{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:6px;}
+  .doc-item{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:7px;padding:8px 12px;font-size:13px;}
+  .doc-icon{color:var(--blue);font-size:14px;}
+  .doc-name{flex:1;color:var(--text);}
+  .doc-name a{color:var(--blue);text-decoration:none;border-bottom:1px dotted var(--blue-dim);}
+  .doc-name a:hover{color:var(--navy);}
+  .doc-meta{color:var(--muted);font-size:11px;white-space:nowrap;}
+  .doc-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;}
+  .doc-del:hover{color:var(--red);}
+  .docs-empty{color:var(--muted);font-size:12.5px;margin:0 0 14px;font-style:italic;}
+  .docs-add{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:12px;}
+  .docs-add input[type="text"]{background:var(--panel);border:1px solid var(--line);border-radius:6px;color:var(--text);padding:7px 10px;font-size:12.5px;}
+  .docs-add input[name="doc-nombre"]{flex:1;min-width:160px;}
+  .docs-add input[name="doc-link"]{flex:1.4;min-width:220px;}
+  .docs-save{background:var(--blue);border:1px solid var(--blue);color:#fff;font-weight:700;border-radius:6px;padding:7px 14px;font-size:12.5px;cursor:pointer;}
+  .docs-save:hover{background:#1a41ab;}
+  .docs-note{width:100%;color:var(--muted);font-size:11px;margin-top:8px;line-height:1.5;}
+  .origen-tag{display:inline-block;font-size:10px;font-weight:700;color:var(--amber);
+    background:var(--amber-tint);border-radius:20px;padding:2px 8px;margin-top:5px;}
+  .origen-tag.mia{color:var(--blue);background:var(--blue-tint);}
+  .pendiente{font-size:12.5px;color:var(--amber);background:var(--amber-tint);
+    border:1px solid #f0dcbc;border-left:3px solid var(--amber);border-radius:6px;
+    padding:11px 14px;margin-bottom:20px;line-height:1.55;}
+  .pendiente b{color:var(--text);}
+  .source-tag{display:inline-block;font-size:10px;font-weight:700;color:var(--green);background:var(--green-tint);border-radius:20px;padding:2px 8px;margin-top:5px;}
+  footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-size:11.5px;
+    color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  .export-btn{font-size:12px;font-weight:600;background:var(--panel);border:1px solid var(--line);
+    color:var(--muted);padding:8px 16px;border-radius:8px;cursor:pointer;
+    transition:all var(--transicion);box-shadow:var(--sombra-sutil);}
+  .export-btn:hover{color:var(--panel);background:var(--navy);border-color:var(--navy);
+    box-shadow:var(--sombra-media);transform:translateY(-1px);}
+  @media (max-width:900px){
+    .stats{grid-template-columns:repeat(3,1fr);}
+    .meta-row{gap:22px;}
+  }
+  @media (max-width:860px){
+    .navy-bar{padding:10px 16px;}
+    .inner{padding:0 16px;}
+    header.page-head{padding:20px 16px 18px;}
+    h1{font-size:22px;}
+    .stats{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:24px;}
+    .stat{padding:13px 14px;}
+    .stat .n{font-size:23px;}
+    /* Las pestañas no se envuelven: se deslizan de lado */
+    .tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
+      margin:0 -16px 20px;padding:0 16px 6px;}
+    .direccion-head p{margin-left:0;}
+    .add-btn{width:100%;}
+
+    /* La tabla se convierte en una tarjeta por iniciativa.
+       Sin restablecer los anchos de columna, los porcentajes del escritorio
+       (22%, 9%, 8%…) siguen aplicando sobre bloques y parten las palabras. */
+    table{border:none;background:none;border-radius:0;overflow:visible;}
+    thead{display:none;}
+    table, tbody, tr, td{display:block;}
+    tbody tr{position:relative;background:var(--panel);border:1px solid var(--line);
+      border-radius:var(--radius);padding:14px 42px 8px 14px;margin-bottom:10px;}
+    tbody td, tbody tr:last-child td{width:auto;padding:0;border-bottom:none;}
+    .col-iniciativa,.col-objeto,.col-num,.col-estado,
+    .col-prior,.col-fecha,.col-docs,.col-del{width:auto;}
+    .col-iniciativa{font-size:14.5px;line-height:1.35;margin-bottom:8px;}
+    .col-objeto{margin-bottom:12px;line-height:1.5;}
+    /* Los campos ocupan todo el ancho de la tarjeta y se ven como campos:
+       de lo contrario el área tocable es apenas el largo del texto, y un
+       título corto como "Nueva iniciativa" queda casi imposible de tocar. */
+    .cell-editable{display:block;width:100%;min-width:0;padding:8px 10px;
+      border:1px dashed #ccd3e0;border-radius:6px;background:var(--panel-2);
+      min-height:19px;font-weight:inherit;}
+    .cell-editable:focus{border-style:solid;border-color:var(--blue);
+      background:var(--blue-tint);box-shadow:none;}
+    /* Pares fijos: [No. proyecto | Estado] · [Prioridad | Actualización] · [Documentos]
+       Sin anchos constantes, el orden cambia de tarjeta a tarjeta según el
+       largo de cada valor. */
+    .col-num,.col-estado,.col-prior,.col-fecha{
+      display:inline-block;vertical-align:top;text-align:left;
+      width:calc(50% - 6px);margin:0 0 12px;}
+    .col-num,.col-prior{margin-right:12px;}
+    .col-docs{display:block;width:100%;text-align:left;margin-bottom:2px;}
+    select.estado-sel, select.prior-sel{font-size:12.5px;padding:7px 14px;}
+    .col-del{position:absolute;top:9px;right:9px;text-align:right;}
+    .del-btn{font-size:20px;padding:2px 4px;}
+    /* Etiquetas propias, porque el encabezado de la tabla queda oculto */
+    .col-num::before,.col-fecha::before,.col-docs::before,
+    .col-estado::before,.col-prior::before{
+      content:attr(data-etq);display:block;font-size:9.5px;text-transform:uppercase;
+      letter-spacing:.07em;color:var(--muted);font-weight:700;margin-bottom:4px;}
+
+    .docs-row{margin:-6px 0 10px;}
+    .docs-row td{padding:12px;}
+    .docs-add{flex-direction:column;align-items:stretch;}
+    .docs-add input[name="doc-nombre"],
+    .docs-add input[name="doc-link"]{min-width:0;width:100%;}
+    .docs-save{width:100%;}
+    .doc-item{flex-wrap:wrap;}
+    .doc-meta{width:100%;}
+    footer{flex-direction:column;align-items:flex-start;}
+    .export-btn{width:100%;}
+  }
+  @media (max-width:420px){
+    .stats{grid-template-columns:1fr 1fr;}
+    .navy-bar{flex-direction:column;align-items:flex-start;}
+  }
+
+/* =====================================================================
+   Añadidos que NO alteran la composición del tablero: el panel de flujo
+   se abre encima, y la píldora de estado se vuelve pulsable conservando
+   exactamente el mismo aspecto que tenía como etiqueta.
+   ===================================================================== */
+.pill-accion{border:none;font:inherit;cursor:pointer;}
+.pill-accion:hover{filter:brightness(0.96);}
+.pill.morado{color:#6b4bb8;background:#f0ecfb;}
+/* Sin `opacity`. El color rebajado al 80 % daba 3,49:1 sobre el panel y
+   3,34:1 sobre panel-2, por debajo del mínimo de 4,5:1; a plena
+   intensidad da 5,26:1. No es un tono nuevo: es dejar de diluir uno que
+   ya cumplía. La cursiva basta para distinguir «sin dato» de un dato. */
+.sin-dato{color:var(--muted);font-style:italic;}
+.del-btn{font-size:17px;color:var(--muted);}
+
+.capa-flujo{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(16,26,46,.72);
+  z-index:900;display:flex;align-items:flex-end;justify-content:center;padding:0;}
+.capa-panel{background:var(--panel);border-radius:14px 14px 0 0;width:100%;max-width:640px;
+  max-height:92vh;display:flex;flex-direction:column;}
+.capa-cabeza{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:18px 20px 14px;border-bottom:1px solid var(--line);}
+.capa-cabeza h2{margin:2px 0 0;font-size:16px;line-height:1.3;font-weight:700;}
+.capa-epi{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.capa-cerrar{background:none;border:none;font-size:18px;color:var(--muted);cursor:pointer;
+  padding:2px 6px;line-height:1;}
+.capa-cerrar:hover{color:var(--text);}
+.capa-cuerpo{overflow-y:auto;padding:4px 20px 20px;}
+.capa-bloque{padding:16px 0;border-bottom:1px solid var(--line);}
+.capa-bloque:last-child{border-bottom:none;}
+.capa-texto{font-size:13px;line-height:1.6;color:var(--muted);margin:8px 0 0;}
+.capa-error{font-size:12.5px;background:var(--red-tint);color:var(--red);border:1px solid #f0cdc8;
+  border-radius:6px;padding:9px 11px;margin:10px 0 0;line-height:1.5;}
+.capa-motivo{width:100%;margin-top:10px;padding:9px 11px;font:inherit;font-size:13px;
+  border:1px solid var(--line);border-radius:6px;resize:vertical;line-height:1.55;}
+.capa-motivo:focus{outline:none;border-color:var(--blue);}
+.capa-acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+
+.riel-estados{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.riel-paso{font-size:11.5px;font-weight:600;color:var(--muted);background:var(--panel-2);
+  border:1px solid var(--line);border-radius:20px;padding:4px 11px;}
+.riel-paso.actual{font-weight:700;}
+.riel-paso.actual.azul{color:var(--blue);background:var(--blue-tint);border-color:#cddaf7;}
+.riel-paso.actual.ambar{color:var(--amber);background:var(--amber-tint);border-color:#f0dcbc;}
+.riel-paso.actual.verde{color:var(--green);background:var(--green-tint);border-color:#c6e6d6;}
+.riel-paso.actual.rojo{color:var(--red);background:var(--red-tint);border-color:#f0cdc8;}
+.riel-paso.actual.morado{color:#6b4bb8;background:#f0ecfb;border-color:#ddd3f5;}
+.riel-paso.actual.gris{color:var(--text);background:#eef0f4;border-color:var(--line);}
+
+.linea-tiempo{list-style:none;margin:12px 0 0;padding:0;}
+.mov{position:relative;padding:0 0 16px 16px;border-left:2px solid var(--line);}
+.mov:last-child{padding-bottom:0;border-left-color:transparent;}
+.mov::before{content:'';position:absolute;left:-5px;top:4px;width:8px;height:8px;
+  border-radius:50%;background:var(--line);}
+.mov-avanzar::before{background:var(--green);}
+.mov-devolver::before{background:var(--amber);}
+.mov-rechazar::before{background:var(--red);}
+.mov-acotar::before{background:#6b4bb8;}
+.mov-titulo{font-size:13px;line-height:1.4;}
+.mov-meta{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.mov-motivo{font-size:12.5px;line-height:1.55;color:var(--text);margin-top:6px;
+  padding-left:9px;border-left:2px solid var(--line);}
+.mov-antes{font-size:12px;line-height:1.5;color:var(--muted);margin-top:5px;
+  text-decoration:line-through;}
+
+@media (min-width:700px){
+  .capa-flujo{align-items:center;padding:24px;}
+  .capa-panel{border-radius:12px;}
+}
+.enlace-admin{color:#c7d2ea;text-decoration:none;font-size:11.5px;font-weight:600;
+  border:1px solid rgba(255,255,255,.28);border-radius:4px;padding:3px 9px;margin-right:12px;}
+.enlace-admin:hover{background:rgba(255,255,255,.12);color:#fff;}
+
+/* ---------------------------------------------------------------------
+   El diseño aprobado colorea el estado por su nombre exacto
+   (.estado-sel[data-v="Radicado"]…). Con el catálogo configurable
+   aparecen estados que no existían, así que se añade la misma píldora
+   resuelta por el color del catálogo, con la paleta ya definida arriba.
+   Geometría idéntica: para los cinco estados originales no cambia nada.
+   --------------------------------------------------------------------- */
+.estado-btn{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;
+  border:1px solid transparent;border-radius:20px;padding:5px 11px;cursor:pointer;
+  font-family:inherit;color:var(--muted);background:var(--panel-2);}
+.estado-btn[data-color="azul"]{color:var(--blue);background:var(--blue-tint);}
+.estado-btn[data-color="ambar"]{color:var(--amber);background:var(--amber-tint);}
+.estado-btn[data-color="verde"]{color:var(--green);background:var(--green-tint);}
+.estado-btn[data-color="rojo"]{color:var(--red);background:var(--red-tint);}
+.estado-btn[data-color="morado"]{color:#6b4bb8;background:#f0ecfb;}
+.estado-btn[data-color="gris"]{color:var(--muted);background:var(--panel-2);}
+.estado-btn:hover{filter:brightness(.96);}
+
+.prior-lbl{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;
+  border-radius:20px;padding:5px 11px;display:inline-block;}
+.prior-lbl[data-v="Alta"]{color:var(--red);background:var(--red-tint);}
+.prior-lbl[data-v="Media"]{color:var(--amber);background:var(--amber-tint);}
+.prior-lbl[data-v="Baja"]{color:var(--muted);background:var(--panel-2);}
+
+@media (max-width:860px){
+  .estado-btn, .prior-lbl{font-size:12.5px;padding:7px 14px;}
+}
+
+/* =====================================================================
+   NOTA DE COMPATIBILIDAD, antes de la capa móvil.
+
+   El navegador mínimo NO lo fija este archivo, que es CSS llano, sino
+   Tailwind 4, que se usa en /admin y en las dos franjas superiores. Su
+   salida trae 28 reglas @property, 38 color-mix() y colores en oklch, y
+   ninguna de las tres cosas se puede polifillar. El piso real es:
+
+       Chrome 111+ · Safari 16.4+ · Firefox 128+   (marzo 2023 en adelante)
+
+   Por eso el compilador escribe las consultas de medios en sintaxis de
+   rango —@media (width<=860px) en vez de max-width— y no hay ajuste de
+   build que lo evite: son requisitos de la herramienta, no del diseño.
+
+   En un teléfono anterior a esa fecha la página se ve mal, y la audiencia
+   de este sistema incluye equipos de gama baja. Es una decisión que se
+   tomó al adoptar Tailwind 4 y que conviene revisar con el Viceministerio;
+   está anotada en docs/pendientes.md.
+   ===================================================================== */
+
+/* =====================================================================
+   CAPA MÓVIL (ola 2)
+   Todo lo de aquí abajo corrige el comportamiento en pantallas pequeñas.
+   No cambia ni un píxel del escritorio: cada regla vive dentro de una
+   consulta de ancho máximo, y ninguna toca color, tipografía ni el orden
+   de los bloques. La composición aprobada se queda como está.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. El margen lateral duplicado.
+
+   El diseño aprobado (referencia/tablero-aprobado.html) pone el aire en
+   `.inner` y deja `.wrap` sin margen lateral:
+
+       .wrap  {padding:0 0 80px;}      .inner {padding:0 24px;}
+       header.page-head {padding:26px 24px 22px;}
+       header.page-head .inner {padding:0;}
+
+   El portado invirtió los dos pares —el aire pasó a `.wrap` y a
+   `header.page-head .inner`— pero copió la consulta de 860 px tal cual,
+   y esa consulta baja a 16 px justamente los elementos que aquí están
+   vacíos. Como los que sí tienen margen no se restablecen nunca, se
+   suman: 32+16 = 48 px por lado. En un teléfono de 360 px quedan 264 px
+   útiles y más de una cuarta parte de la pantalla es aire.
+
+   Restablecerlos devuelve el reparto aprobado: un solo margen de 16 px.
+   Recupera 64 px de ancho en cada teléfono.
+   --------------------------------------------------------------------- */
+@media (max-width:860px){
+  .wrap{padding-left:0;padding-right:0;}
+  header.page-head .inner{padding-left:0;padding-right:0;}
+}
+
+/* ---------------------------------------------------------------------
+   2. Presupuesto de ancho a 320 px.
+
+   Por debajo de 360 px el margen de 16 px por lado deja poco sitio para
+   una píldora y una etiqueta lado a lado. Se aprieta a 12 px en vez de
+   dejar que el contenido desborde.
+   --------------------------------------------------------------------- */
+@media (max-width:359px){
+  .inner{padding-left:12px;padding-right:12px;}
+  header.page-head{padding-left:12px;padding-right:12px;}
+  .tabs{margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px;}
+  tbody tr{padding:12px 38px 8px 12px;}
+}
+
+/* ---------------------------------------------------------------------
+   3. La píldora de estado se salía de su tarjeta.
+
+   «EN FORMULACIÓN» —el estado por defecto de toda iniciativa nueva— no
+   cabe en el ancho que le deja el reparto de dos columnas por debajo de
+   ~330 px, y se desbordaba fuera del borde de la tarjeta. Se le permite
+   ocupar dos líneas y partir la palabra antes que salirse.
+   --------------------------------------------------------------------- */
+@media (max-width:860px){
+  .estado-btn, .prior-lbl{
+    max-width:100%;white-space:normal;overflow-wrap:anywhere;
+    text-align:left;line-height:1.25;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   4. Área tocable.
+
+   estilos.css ya exige 44 px de alto a `button`, `a[role=button]` y
+   `select` cuando el puntero es grueso, pero deja fuera tres cosas que
+   se tocan todo el tiempo: los botones que son un solo glifo (su ancho
+   se queda en el ancho del carácter), los enlaces a documentos, y las
+   celdas editables, que son `span` y no `button`.
+
+   El glifo de la última columna conserva su posición exacta en la
+   esquina: solo crece su superficie sensible.
+   --------------------------------------------------------------------- */
+@media (pointer:coarse){
+  .del-btn, .capa-cerrar, .doc-del{
+    min-width:44px;min-height:44px;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .col-del{top:2px;right:2px;}
+  .doc-name a{display:inline-block;padding:6px 0;}
+  .docs-btn{min-height:44px;}
+  [contenteditable="true"]{min-height:44px;}
+}
+
+/* ---------------------------------------------------------------------
+   5. La fila de error de guardado, en móvil.
+
+   Se abre encima de la tarjeta, así que no debe heredar el relleno de
+   la fila-tarjeta ni quedar pegada al borde.
+   --------------------------------------------------------------------- */
+@media (max-width:860px){
+  .docs-row{padding:0;border:none;background:none;margin:-6px 0 10px;}
+  .capa-error{font-size:13px;}
+}
+
+/* ---------------------------------------------------------------------
+   6. El panel de flujo como hoja inferior.
+
+   `vh` no encoge cuando aparece el teclado virtual: la hoja se queda
+   más alta que la ventana y el contenido de abajo queda inalcanzable.
+   `dvh` sí. Se declara después para que gane donde exista, y el `vh`
+   queda como respaldo en navegadores viejos.
+
+   El `safe-area-inset-bottom` es por la barra de gestos del teléfono,
+   que si no tapa el último elemento del panel.
+   --------------------------------------------------------------------- */
+.capa-panel{
+  max-height:92vh;
+  max-height:92dvh;
+  padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+.capa-cuerpo{overscroll-behavior:contain;}
+
+/* Teléfono en horizontal: la ventana es muy baja y una hoja al 92 %
+   no deja ver ni el encabezado. Se ocupa todo el alto disponible. */
+@media (max-height:460px){
+  .capa-flujo{align-items:stretch;padding:0;}
+  .capa-panel{max-height:100dvh;border-radius:0;}
+}
+
+/* ---------------------------------------------------------------------
+   7. Señal de que las pestañas siguen a la derecha.
+
+   El riel de direcciones se desliza, pero no había ninguna pista visual
+   de que hubiera más contenido fuera de vista. Un degradado en el borde
+   derecho lo insinúa sin ocupar sitio ni añadir un control nuevo.
+   --------------------------------------------------------------------- */
+@media (max-width:860px){
+  .tabs-riel{position:relative;}
+  .tabs-riel::after{
+    content:'';position:absolute;top:0;right:0;bottom:6px;width:28px;
+    pointer-events:none;
+    background:linear-gradient(to right, rgba(244,246,249,0), var(--bg));
+  }
+}
+
+/* La lista de estados pasó de <div>/<span> a <ol>/<li>, para que sea un
+   recorrido con pasos y el paso vigente pueda llevar aria-current.
+
+   Solo hay que neutralizar lo que <ol> trae de fábrica: el marcador y la
+   sangría. La disposición no cambia porque `.riel-estados` sigue siendo
+   `display:flex` en el bloque aprobado, y un contenedor flex convierte a
+   sus hijos en items flex sea `span` o `li`. El `gap:6px` sigue aplicando
+   igual. El aspecto es idéntico. */
+.riel-estados{list-style:none;padding-left:0;}
+
+/* ---------------------------------------------------------------------
+   Guía de la celda vacía: se deja el color aprobado a plena intensidad.
+
+   El texto guía usa var(--muted), que es el color aprobado, pero lo
+   pintaba al 80 % de opacidad en reposo y al 45 % con el foco. Diluido da
+   3,34:1 y 1,78:1 sobre sus fondos; a plena intensidad da 4,98:1. El
+   mínimo exigible es 4,5:1 (Resolución 1519 → WCAG 1.4.3).
+
+   No es un cambio de paleta: es dejar de rebajar un color aprobado. El
+   valor sigue siendo var(--muted); lo que se retira es la transparencia.
+
+   Con el foco, el fondo pasa a --blue-tint y el mismo color da 4,36:1: no
+   alcanza por poco, y llegar ahí sí exigiría un tono nuevo. Se usa el
+   color de texto pleno mientras el campo está enfocado, que es cuando la
+   guía importa menos porque la persona ya está escribiendo.
+   --------------------------------------------------------------------- */
+.cell-editable:empty::before{opacity:1;}
+.cell-editable:focus:empty::before{opacity:1;color:var(--text);font-style:italic;}
+
+/* ---------------------------------------------------------------------
+   El botón de la última columna abre el detalle; ya no borra.
+
+   Hereda `.del-btn` para conservar su geometría exacta —es lo que pide la
+   regla: misma caja, distinta función— pero se le retira el rojo del
+   `:hover`, que en el diseño original avisaba de un borrado. Una señal de
+   peligro sobre una acción inocua enseña a la gente a desconfiar de las
+   señales.
+   --------------------------------------------------------------------- */
+.del-btn.abre-detalle:hover{color:var(--blue);}
+
+/* ---------------------------------------------------------------------
+   Alcance del resumen.
+
+   Las cinco tarjetas cuentan sobre todas las direcciones y la tabla de
+   abajo muestra la pestaña activa. Sin decirlo, «15 iniciativas totales»
+   encima de tres filas parece un error de la aplicación. Se rotula con la
+   misma tipografía de los epígrafes del diseño aprobado.
+   --------------------------------------------------------------------- */
+.alcance-resumen{font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--muted);font-weight:700;padding:3px 9px;border-radius:20px;
+  background:var(--panel-2);border:1px solid var(--line);white-space:nowrap;}
+@media (max-width:520px){
+  .section-title{flex-wrap:wrap;}
+  .alcance-resumen{font-size:9.5px;}
+}
+
+/* El punto de la línea de tiempo para una edición de contenido. Las demás
+   variantes (.mov-avanzar, .mov-devolver…) ya están en la sección de
+   añadidos; sin esta, una edición quedaba en el gris por omisión y no se
+   distinguía de un movimiento de estado. */
+.mov-edicion::before{background:var(--blue-dim);}
+
+/* =====================================================================
+   IMPRESIÓN
+
+   El propio encabezado del tablero dice «Dirigido a: Despacho del
+   Viceministro», así que se imprime y se radica en papel. No había ni una
+   regla @media print en todo el proyecto: al imprimir salían la barra
+   GOV.CO a sangre, la franja institucional, el buscador, los botones de
+   acción, y la tabla de ocho columnas cortada por el borde de la hoja.
+
+   Nada de esto afecta a la pantalla: son reglas que solo existen en papel.
+   ===================================================================== */
+@media print {
+  /* Fondos a sangre y color de acento: en papel se van en tinta y no
+     aportan nada. Se imprime en negro sobre blanco. */
+  body { background: #fff; }
+  .wrap { padding: 0; max-width: none; }
+
+  /* Lo que no es contenido no se imprime: barras institucionales,
+     buscador, pestañas, botones y el aviso del tablero compartido. */
+  .tabs-riel,
+  .notice,
+  .add-btn,
+  .export-btn,
+  .docs-btn,
+  .del-btn,
+  .capa-flujo,
+  .sr-solo-foco { display: none !important; }
+
+  /* La franja page-head sí se conserva: lleva el destinatario, la fecha de
+     corte y la clasificación, que es lo que da valor al papel. */
+  header.page-head { border-bottom: 1px solid #000; padding: 0 0 12pt; }
+
+  /* La tabla, legible en A4. Se quitan los anchos porcentuales pensados
+     para 1680 px y se deja que el navegador reparta. */
+  table { border: 1px solid #000; font-size: 8.5pt; }
+  thead th { background: #eee !important; color: #000; border-bottom: 1px solid #000; }
+  tbody td { border-bottom: 1px solid #ccc; }
+  .col-iniciativa, .col-objeto, .col-num,
+  .col-estado, .col-prior, .col-fecha { width: auto; }
+  .col-docs, .col-del { display: none; }
+
+  /* Que el encabezado se repita en cada hoja y no se parta ninguna fila:
+     media iniciativa al final de una página es ilegible. */
+  thead { display: table-header-group; }
+  tbody tr { page-break-inside: avoid; }
+
+  /* Las píldoras pierden su fondo pero conservan el texto, que es lo que
+     lleva el significado. */
+  .estado-btn, .prior-lbl, .prior-sel {
+    background: none !important;
+    color: #000 !important;
+    border: 1px solid #666;
+    padding: 1pt 4pt;
+  }
+
+  /* Los campos editables no parecen campos en papel. */
+  .cell-editable {
+    border: none !important;
+    background: none !important;
+    padding: 0 !important;
+  }
+
+  /* El pie con el descargo se conserva: es lo que aclara el valor jurídico
+     del documento impreso. */
+  footer { border-top: 1px solid #000; font-size: 8pt; }
+
+  /* Los enlaces a documentos, con su destino visible: en papel un enlace
+     sin URL no sirve para nada. */
+  .doc-name a::after { content: ' (' attr(href) ')'; font-size: 7.5pt; }
+
+  @page { margin: 14mm; }
+}
+
+/* =====================================================================
+   EL TIEMPO Y LA JERARQUÍA DE LA FILA
+
+   Dos añadidos que cambian lo que la tabla comunica sin cambiar su
+   composición: no se agregan columnas, no se mueve nada de sitio.
+   ===================================================================== */
+
+/* Cuánto lleva el trámite en su estado. Va bajo la píldora, con la misma
+   tipografía de los rótulos secundarios del diseño aprobado. */
+.tiempo-estado{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:5px;
+  line-height:1.3;
+  font-variant-numeric:tabular-nums;
+}
+
+/* Cuando lleva demasiado sin moverse, el texto se afirma. No se usa solo el
+   color: la palabra cambia («43 d en comisión» sigue siendo la misma frase,
+   pero la fila entera lleva franja), así que quien no distingue los tonos
+   tiene la otra señal. */
+.tiempo-estado.atencion{
+  color:var(--amber);
+  font-weight:700;
+}
+
+/* La franja de la fila que merece atención.
+   `box-shadow` interior y no `border-left`: un borde real desplazaría el
+   contenido de las ocho celdas y rompería los anchos del diseño aprobado.
+   Esto pinta encima, sin ocupar espacio. */
+tbody tr.fila-atencion{
+  box-shadow:inset 3px 0 0 var(--amber);
+}
+
+/* En móvil la fila es una tarjeta con borde propio: la franja se aplica al
+   borde izquierdo, que ahí sí existe y no descoloca nada. */
+@media (max-width:860px){
+  tbody tr.fila-atencion{
+    box-shadow:none;
+    border-left:3px solid var(--amber);
+    padding-left:11px;
+  }
+  .tiempo-estado{margin-top:4px;}
+}
+
+/* Resumen de lo que está detenido. Va junto a las tarjetas del resumen, en
+   su misma caja, sin añadir una sexta tarjeta —eso cambiaría la retícula de
+   cinco columnas del diseño aprobado—. */
+.aviso-estancados{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-size:12.5px;
+  line-height:1.5;
+  color:var(--amber);
+  background:var(--amber-tint);
+  border:1px solid #f0dcbc;
+  border-left:3px solid var(--amber);
+  border-radius:6px;
+  padding:11px 14px;
+  margin:-14px 0 26px;
+}
+.aviso-estancados b{color:var(--text);}
+.aviso-estancados .marca{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--amber);flex-shrink:0;
+}
+
+/* =====================================================================
+   LAS TARJETAS DEL RESUMEN, COMO FILTROS
+
+   Eran cinco números grandes que invitaban a pulsarse y no hacían nada.
+   Ahora filtran, y el aspecto aprobado se conserva entero: la clase
+   `.stat` sigue poniendo el fondo, el borde, el borde superior azul, el
+   radio y el relleno. Aquí solo se neutraliza el cromo que el navegador
+   añade por ser un <button> y se agrega la señal de activo.
+
+   Deliberadamente NO se usa `.pill-accion`, que borraría el borde.
+   ===================================================================== */
+
+button.stat-filtro{
+  /* Un <button> trae del navegador su propia tipografía, alineación al
+     centro y ancho ajustado al contenido. Nada de eso lo fija `.stat`,
+     así que hay que devolverlo a lo que era. */
+  font:inherit;
+  color:inherit;
+  text-align:left;
+  width:100%;
+  display:block;
+  cursor:pointer;
+  /* La transición ya existe como token del rediseño. */
+  transition:border-color var(--transicion, .2s ease),
+             box-shadow var(--transicion, .2s ease),
+             transform var(--transicion, .2s ease);
+}
+
+button.stat-filtro:hover{
+  border-color:var(--blue-dim);
+  box-shadow:var(--sombra-media, 0 4px 12px rgba(0,0,0,.06));
+}
+
+/* Al pulsar, un hundimiento muy leve: confirma el toque en un teléfono,
+   donde no hay estado de hover que lo anuncie. */
+button.stat-filtro:active{
+  transform:translateY(1px);
+}
+
+/* Activa. Tres señales a la vez y no solo color, porque el color no puede
+   ser el único portador de significado (WCAG 1.4.1):
+     · el fondo se tiñe
+     · el borde se afirma
+     · y `aria-pressed` lo dice a las ayudas técnicas
+   El borde superior azul de `.stat` se conserva en los dos estados. */
+button.stat-filtro.activa{
+  background:var(--blue-tint);
+  border-color:var(--blue-dim);
+}
+button.stat-filtro.activa .l{
+  color:var(--blue);
+}
+
+/* En móvil las tarjetas van en dos columnas y son lo primero accionable de
+   la pantalla: conviene que se note que se pueden tocar. */
+@media (max-width:860px){
+  button.stat-filtro{
+    -webkit-tap-highlight-color:rgba(33,81,209,.12);
+  }
+}
+
+/* Salida del filtro, junto al rótulo del resumen. Sin ella hay que recordar
+   cuál de las cinco tarjetas se pulsó para poder soltarla. */
+.quitar-filtros{
+  font:inherit;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.04em;
+  color:var(--blue);
+  background:var(--blue-tint);
+  border:1px solid #cddaf7;
+  border-radius:20px;
+  padding:3px 11px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.quitar-filtros:hover{background:var(--panel);border-color:var(--blue-dim);}
+.quitar-filtros::before{content:'✕';margin-right:5px;font-weight:400;}
+
+/* Aviso de contraseña provisional. Va sobre el mismo `.notice` aprobado y
+   solo le cambia el acento a ámbar, porque no es informativo: es un
+   bloqueo de escritura que el funcionario descubría al intentar guardar.
+   El botón interno se pinta como enlace para no meter un control nuevo en
+   un bloque que el diseño define como texto. */
+.notice.aviso-provisional{background:var(--amber-tint);border-color:#f0d8b4;
+  border-left-color:var(--amber);}
+.enlace-provisional{background:none;border:none;padding:0;font:inherit;
+  font-weight:700;color:var(--navy);text-decoration:underline;cursor:pointer;}
+.enlace-provisional:hover{color:var(--blue);}
+.enlace-provisional:focus-visible{outline:2px solid var(--blue);outline-offset:2px;
+  border-radius:2px;}
+
+/* =====================================================================
+   Zoom automático de iOS en los formularios
+
+   Safari en iPhone amplía la página al enfocar un campo cuyo tamaño de
+   letra sea menor de 16 px, y no vuelve al zoom anterior al salir: el
+   funcionario se queda con la tabla desencuadrada y tiene que recolocarla
+   a mano. La regla estaba aplicada en cuatro campos sueltos, así que
+   faltaba en todo el ingreso, en el registro y en el formulario público.
+   Aquí cubre cualquier control, incluidos los que se añadan después.
+
+   16px es el umbral exacto de Safari; no se puede bajar a 15,9.
+   ===================================================================== */
+@media (max-width: 860px) {
+  input, select, textarea, .cell-editable {
+    font-size: 16px;
+  }
+}

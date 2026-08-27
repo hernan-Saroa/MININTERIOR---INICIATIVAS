@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "ms-azuretools.vscode-docker",
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-mysql",
+    "editorconfig.editorconfig"
+  ]
+}

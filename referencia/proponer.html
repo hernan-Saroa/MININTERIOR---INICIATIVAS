@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proponer una iniciativa · Ministerio del Interior</title>
+<style>
+  :root{
+    --navy:#101a2e; --bg:#f4f6f9; --panel:#ffffff; --panel-2:#f7f8fb; --line:#e1e5ec;
+    --text:#151b26; --muted:#69707e; --blue:#2151d1; --blue-dim:#5b7fdb; --blue-tint:#eaf0fd;
+    --green:#1f8a5f; --green-tint:#e9f6ef; --red:#c0392b; --red-tint:#fbebe9; --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+  .navy-bar{background:var(--navy);color:#fff;padding:14px 20px;}
+  .navy-bar .eyebrow{max-width:720px;margin:0 auto;font-size:11px;letter-spacing:.11em;
+    text-transform:uppercase;color:#c7d2ea;font-weight:600;line-height:1.5;}
+  main{max-width:720px;margin:0 auto;padding:30px 20px 60px;}
+  h1{font-size:24px;margin:0 0 8px;letter-spacing:-.01em;}
+  .sub{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 26px;}
+  .caja{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:24px 22px;margin-bottom:16px;}
+  label{display:block;font-size:12px;font-weight:700;margin:0 0 6px;letter-spacing:.02em;}
+  .pista{font-size:11.5px;color:var(--muted);font-weight:400;margin:-2px 0 7px;line-height:1.5;}
+  input,select,textarea{width:100%;padding:10px 12px;font:inherit;font-size:14px;
+    border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--text);
+    margin-bottom:18px;}
+  textarea{min-height:96px;resize:vertical;line-height:1.55;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);
+    box-shadow:0 0 0 3px rgba(33,81,209,.12);}
+  .btn{width:100%;padding:12px;font:inherit;font-size:14.5px;font-weight:700;color:#fff;
+    background:var(--blue);border:none;border-radius:6px;cursor:pointer;}
+  .btn:hover{background:#1b44b0;}
+  .btn:disabled{opacity:.55;cursor:default;}
+  .btn-sec{background:var(--panel);color:var(--muted);border:1px solid var(--line);margin-top:9px;}
+  .btn-sec:hover{background:var(--panel-2);color:var(--text);}
+  .aviso{font-size:13px;padding:11px 13px;border-radius:6px;margin-bottom:18px;
+    display:none;line-height:1.5;}
+  .aviso.error{display:block;background:var(--red-tint);color:var(--red);border:1px solid #f0cdc8;}
+  .aviso.ok{display:block;background:var(--green-tint);color:var(--green);border:1px solid #c6e6d6;}
+  .capa{display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(16,26,46,.72);z-index:900;align-items:center;justify-content:center;
+    padding:20px;overflow:auto;}
+  .capa-caja{background:#fff;border-radius:var(--radius);padding:28px 24px 24px;
+    width:100%;max-width:420px;max-height:92vh;overflow:auto;}
+  .capa-caja h2{font-size:18px;margin:0 0 6px;}
+  .exito{text-align:center;padding:14px 0 4px;}
+  .exito .tic{width:48px;height:48px;border-radius:50%;background:var(--green-tint);
+    color:var(--green);font-size:24px;line-height:48px;margin:0 auto 14px;}
+  .pie{font-size:11.5px;color:var(--muted);text-align:center;line-height:1.6;margin-top:26px;}
+  .pie a{color:var(--blue);}
+  .nota{background:var(--blue-tint);border:1px solid #cddaf7;border-left:3px solid var(--blue);
+    border-radius:6px;padding:12px 14px;font-size:12.5px;color:var(--muted);line-height:1.55;
+    margin-bottom:22px;}
+  .nota b{color:var(--text);}
+</style>
+</head>
+<body>
+
+<div class="navy-bar">
+  <div class="eyebrow">Ministerio del Interior · Viceministerio para el Diálogo Social y los Derechos Humanos</div>
+</div>
+
+<main>
+  <h1>Proponer una iniciativa legislativa</h1>
+  <p class="sub">Registre una iniciativa para que la dirección correspondiente la revise.
+     No necesita tener cuenta: al enviarla podrá registrarse si quiere hacerle seguimiento.</p>
+
+  <div id="aviso" class="aviso"></div>
+
+  <div id="vista-form">
+    <div class="caja">
+      <label for="direccion">Dirección a la que corresponde</label>
+      <select id="direccion"><option value="">Cargando…</option></select>
+
+      <label for="nombre">Nombre de la iniciativa</label>
+      <div class="pista">Por ejemplo: "Proyecto de ley de garantías para personas defensoras de derechos humanos".</div>
+      <input type="text" id="nombre" maxlength="500">
+
+      <label for="objeto">Objeto o alcance</label>
+      <div class="pista">Opcional. En una o dos frases, qué busca resolver.</div>
+      <textarea id="objeto" maxlength="4000"></textarea>
+
+      <label for="numero">Número de proyecto</label>
+      <div class="pista">Opcional. Si ya está radicado, por ejemplo "PL 214/2026C".</div>
+      <input type="text" id="numero" maxlength="60">
+
+      <button class="btn" id="btn-enviar">Guardar iniciativa</button>
+    </div>
+    <div class="pie">
+      ¿Ya tiene cuenta? <a href="/login.html">Inicie sesión</a> para ver el tablero completo.
+    </div>
+  </div>
+
+  <div id="vista-listo" style="display:none">
+    <div class="caja exito">
+      <div class="tic">✓</div>
+      <h2 style="margin:0 0 8px">Iniciativa guardada</h2>
+      <p class="sub" style="margin-bottom:0">Queda registrada como propuesta y la dirección
+         correspondiente la verá en el tablero.</p>
+    </div>
+    <div class="pie">
+      <a href="/proponer.html">Proponer otra</a> · <a href="/login.html">Ir al tablero</a>
+    </div>
+  </div>
+</main>
+
+<div id="capa-registro" class="capa">
+  <div class="capa-caja">
+    <div id="aviso-reg" class="aviso"></div>
+
+    <h2>¿Quiere hacerle seguimiento?</h2>
+    <p class="sub">Cree una cuenta para ver el estado de sus propuestas y consultar el tablero.
+       Son tres datos y toma un momento.</p>
+
+    <label for="r-nombre">Nombre completo</label>
+    <input type="text" id="r-nombre" autocomplete="name">
+
+    <label for="r-correo">Correo</label>
+    <input type="email" id="r-correo" autocomplete="email" autocapitalize="off" spellcheck="false">
+
+    <label for="r-clave">Contraseña</label>
+    <div class="pista">Al menos 12 caracteres, con letras y números.</div>
+    <input type="password" id="r-clave" autocomplete="new-password">
+
+    <button class="btn" id="btn-registrar">Crear cuenta y guardar</button>
+    <button class="btn btn-sec" id="btn-sin-cuenta">Guardar sin crear cuenta</button>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+let direccionesCargadas = [];
+
+function avisar(id, texto, tipo){
+  const el = document.getElementById(id);
+  el.textContent = texto || '';
+  el.className = 'aviso' + (texto ? ' ' + tipo : '');
+}
+
+async function llamar(ruta, cuerpo){
+  const opciones = { headers:{'Content-Type':'application/json'}, credentials:'same-origin' };
+  if(cuerpo){ opciones.method = 'POST'; opciones.body = JSON.stringify(cuerpo); }
+  const res = await fetch(API + ruta, opciones);
+  const datos = await res.json().catch(() => ({}));
+  if(!res.ok){ const e = new Error(datos.error || ('Error HTTP ' + res.status)); e.codigo = datos.codigo; throw e; }
+  return datos;
+}
+
+async function cargarDirecciones(){
+  const sel = document.getElementById('direccion');
+  try{
+    direccionesCargadas = await llamar('/publico/direcciones');
+    sel.innerHTML = '<option value="">Seleccione una dirección…</option>';
+    direccionesCargadas.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.id; o.textContent = d.nombre;
+      sel.appendChild(o);
+    });
+  } catch(err){
+    sel.innerHTML = '<option value="">No se pudo cargar</option>';
+    avisar('aviso', 'No se pudo conectar con el servidor. Intente más tarde.', 'error');
+  }
+}
+
+function datosFormulario(){
+  return {
+    direccion_id: document.getElementById('direccion').value,
+    nombre: document.getElementById('nombre').value.trim(),
+    objeto: document.getElementById('objeto').value.trim(),
+    numero_proyecto: document.getElementById('numero').value.trim()
+  };
+}
+
+function validar(d){
+  if(!d.direccion_id) return 'Seleccione la dirección a la que corresponde.';
+  if(d.nombre.length < 8) return 'Escriba el nombre de la iniciativa con un poco más de detalle.';
+  return null;
+}
+
+// La propuesta se guarda solo después de decidir sobre el registro: así no
+// quedan registros huérfanos si la persona abandona en ese paso.
+document.getElementById('btn-enviar').onclick = () => {
+  const error = validar(datosFormulario());
+  if(error){ avisar('aviso', error, 'error'); return; }
+  avisar('aviso', '', '');
+  document.getElementById('capa-registro').style.display = 'flex';
+  document.getElementById('r-nombre').focus();
+};
+
+async function guardarPropuesta(extra){
+  const datos = datosFormulario();
+  if(extra){ datos.contacto = extra.contacto; datos.correo = extra.correo; }
+  await llamar('/publico/propuestas', datos);
+  document.getElementById('capa-registro').style.display = 'none';
+  document.getElementById('vista-form').style.display = 'none';
+  document.getElementById('vista-listo').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+document.getElementById('btn-registrar').onclick = async () => {
+  const boton = document.getElementById('btn-registrar');
+  const nombre = document.getElementById('r-nombre').value.trim();
+  const correo = document.getElementById('r-correo').value.trim();
+  const clave = document.getElementById('r-clave').value;
+
+  if(!nombre || !correo || !clave){ avisar('aviso-reg', 'Complete los tres campos.', 'error'); return; }
+  boton.disabled = true; avisar('aviso-reg', '', '');
+  try{
+    await llamar('/publico/registrar', { nombre, correo, contrasena: clave });
+    await guardarPropuesta();   // ya con sesión: queda atribuida a la cuenta
+  } catch(err){
+    if(err.codigo === 'YA_EXISTE'){
+      avisar('aviso-reg', 'Ya existe una cuenta con ese correo. Puede guardar sin crear cuenta e iniciar sesión después.', 'error');
+    } else {
+      avisar('aviso-reg', err.message, 'error');
+    }
+  } finally { boton.disabled = false; }
+};
+
+document.getElementById('btn-sin-cuenta').onclick = async () => {
+  const boton = document.getElementById('btn-sin-cuenta');
+  boton.disabled = true;
+  try{
+    await guardarPropuesta({
+      contacto: document.getElementById('r-nombre').value.trim(),
+      correo: document.getElementById('r-correo').value.trim()
+    });
+  } catch(err){
+    avisar('aviso-reg', err.message, 'error');
+  } finally { boton.disabled = false; }
+};
+
+cargarDirecciones();
+</script>
+</body>
+</html>

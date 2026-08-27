@@ -1,0 +1,41 @@
+{
+  "name": "iniciativas-web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "tsc --noEmit",
+    "build:pruebas": "vite build --config vite.test.config.mjs",
+    "prueba": "node ../scripts/verificar-contraste.js && npm run build:pruebas && node prueba-humo.mjs && node prueba-a11y.mjs && node prueba-foco.mjs && node prueba-url.mjs && node prueba-tiempo.mjs && node prueba-filtros.mjs && node prueba-entorno.mjs",
+    "contraste": "node ../scripts/verificar-contraste.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tanstack/react-query": "^5.102.3",
+    "lucide-react": "^1.34.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.2",
+    "recharts": "^3.10.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@vitejs/plugin-react": "^6.1.0",
+    "browserslist": "^4.28.8",
+    "jsdom": "^30.0.1",
+    "lightningcss": "^1.33.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vite-plugin-singlefile": "^2.3.3"
+  },
+  "private": true,
+  "type": "module"
+}

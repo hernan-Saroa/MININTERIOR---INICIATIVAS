@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciativas Legislativas · Viceministerio para el Diálogo Social y los DD.HH.</title>
+
+<!--
+  REGISTRO DE LA VERSIÓN ORIGINAL, sin React. Su pareja es
+  web/src/tablero-aprobado.css.
+
+  Ya NO es una fuente de verdad que congele el diseño: el proyecto puede
+  y debe mejorarse. Sirve para dos cosas: ver de dónde viene cada
+  decisión, y poder volver a una versión sin dependencias si hiciera
+  falta. `node referencia/comparar-diseno.mjs` informa de las diferencias
+  entre los dos lados, sin exigir que sean cero.
+
+  2026-08-26 · Sincronización con el rediseño aplicado al bloque bloqueado del
+  portado. Se igualaron 22 decisiones visuales: tipografía (Inter), --radius
+  10→12px, cuatro tokens nuevos (--sombra-sutil/media/elevada, --transicion),
+  la escala de rótulos en versalitas (10.5→10px, más letter-spacing y peso),
+  rellenos de .stat, .tab, .export-btn y tbody td, sombras en seis estados de
+  hover, el hover de fila (panel-2 → azul al 3%) y el brillo superior nuevo de
+  las tarjetas (.stat::after). Comprobado: 0 divergencias.
+
+  NO se igualó, a propósito, lo que es propio de esta página independiente y
+  anterior al rediseño: .wrap max-width 1240px (el portado usa 1680px), la
+  posición del margen lateral y .navy-bar .eyebrow 1192px. Cambiarlo alteraría
+  el ancho de esta página sin que nadie lo haya pedido.
+
+  2026-08-27 · Contraste WCAG 2.1 AA. Tres tonos se oscurecieron porque no
+  alcanzaban el mínimo de 4,5:1 sobre sus propios tintes: ámbar #c9791c →
+  #9d5f16 (era 3,02:1), verde #1f8a5f → #1c7c55 (era 3,89:1) y el texto
+  tenue #69707e → #666c7a (era 4,36:1). El matiz se conservó moviendo solo
+  la luminosidad. Lo exige la Resolución 1519 de 2020 del MinTIC, así que
+  no es una preferencia estética: `node scripts/verificar-contraste.js`
+  falla si algún par vuelve a bajar del mínimo.
+-->
+<style>
+  :root{
+    --navy:#101a2e; --navy-2:#1a2740; --bg:#f4f6f9; --panel:#ffffff; --panel-2:#f7f8fb;
+    --line:#e1e5ec; --text:#151b26; --muted:#666c7a; --blue:#2151d1; --blue-dim:#5b7fdb;
+    --blue-tint:#eaf0fd; --green:#1c7c55; --green-tint:#e9f6ef; --red:#c0392b; --red-tint:#fbebe9;
+    --amber:#9d5f16; --amber-tint:#fdf1e2; --radius:12px;
+    --sombra-sutil: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+    --sombra-media: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+    --sombra-elevada: 0 8px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+    --transicion: 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter','Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:'cv11','ss01';}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 0 80px;}
+  .inner{padding:0 24px;}
+  .navy-bar{background:var(--navy);color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  .navy-bar .eyebrow{max-width:1192px;margin:0 auto;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#c7d2ea;font-weight:600;}
+  .sync-status{font-size:11px;color:#c7d2ea;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:#4fbf7a;flex-shrink:0;}
+  .sync-dot.saving{background:#e0a63c;}
+  .sync-dot.error{background:#d5564a;}
+  #usuario-barra{display:inline-flex;align-items:center;gap:10px;margin-right:14px;}
+  .usuario-nombre{opacity:.85;}
+  .usuario-salir{background:none;border:1px solid rgba(255,255,255,.35);color:inherit;font:inherit;
+    font-size:11px;padding:2px 9px;border-radius:3px;cursor:pointer;}
+  .usuario-salir:hover{background:rgba(255,255,255,.12);}
+  header.page-head{background:var(--panel);border-bottom:1px solid var(--line);padding:26px 24px 22px;}
+  header.page-head .inner{max-width:1192px;margin:0 auto;padding:0;}
+  h1{font-size:27px;margin:0 0 8px;font-weight:700;letter-spacing:-.01em;color:var(--text);}
+  .sub{color:var(--muted);font-size:14.5px;line-height:1.65;max-width:760px;}
+  .meta-row{display:flex;gap:40px;margin-top:20px;padding-top:18px;border-top:1px solid var(--line);flex-wrap:wrap;}
+  .meta-item .l{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:4px;}
+  .meta-item .v{font-size:14px;color:var(--text);font-weight:600;}
+  .content{padding-top:28px;}
+  .notice{font-size:12.5px;color:var(--muted);background:var(--blue-tint);border:1px solid #cddaf7;border-left:3px solid var(--blue);border-radius:6px;padding:12px 16px;margin-bottom:26px;line-height:1.55;}
+  .notice b{color:var(--text);}
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:32px;}
+  .stat{background:var(--panel);border:1px solid var(--line);
+    border-top:3px solid var(--blue);border-radius:var(--radius);padding:18px 20px;
+    box-shadow:var(--sombra-sutil);transition:all var(--transicion);position:relative;overflow:hidden;}
+  .stat::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg, var(--blue), var(--blue-dim));opacity:0;
+    transition:opacity var(--transicion);}
+  .stat:hover{box-shadow:var(--sombra-media);transform:translateY(-1px);}
+  .stat:hover::after{opacity:1;}
+  .stat .n{font-size:30px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums;line-height:1;}
+  .stat .l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:7px;font-weight:700;}
+  .section-title{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .badge-num{width:24px;height:24px;border-radius:6px;background:var(--navy);color:#fff;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .section-title h2{font-size:18px;margin:0;font-weight:700;color:var(--text);}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px;}
+  .tab{padding:9px 18px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s ease;white-space:nowrap;}
+  .tab:hover{color:var(--text);border-color:var(--blue-dim);box-shadow:var(--sombra-media);}
+  .tab.active{background:var(--navy);color:#fff;border-color:var(--navy);box-shadow:0 2px 8px rgba(16,26,46,.25);}
+  .tab .count{opacity:.7;margin-left:5px;font-size:11px;}
+  .direccion-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:16px;flex-wrap:wrap;}
+  .direccion-head p{margin:6px 0 0 34px;color:var(--muted);font-size:13.5px;max-width:640px;line-height:1.5;}
+  .add-btn{font-size:13px;font-weight:600;background:var(--panel);border:1px solid var(--blue);color:var(--blue);padding:9px 16px;border-radius:7px;cursor:pointer;white-space:nowrap;}
+  .add-btn:hover{background:var(--blue);color:#fff;box-shadow:var(--sombra-media);transform:translateY(-1px);}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+  thead th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--panel-2);padding:11px 12px;border-bottom:1px solid var(--line);font-weight:700;}
+  tbody td{padding:13px 14px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(33,81,209,.03);}
+  .cell-editable{outline:none;min-width:60px;line-height:1.4;}
+  .cell-editable:focus{background:var(--blue-tint);border-radius:4px;box-shadow:0 0 0 1px var(--blue-dim);}
+  /* Señal de que el campo es editable, y guía cuando está vacío */
+  .cell-editable:hover{background:var(--panel-2);border-radius:4px;}
+  .cell-editable:empty::before{content:attr(data-vacio);color:var(--muted);
+    font-style:italic;font-weight:400;opacity:.8;}
+  .cell-editable:focus:empty::before{opacity:.45;}
+  .col-iniciativa{width:22%;font-weight:700;color:var(--text);}
+  .col-objeto{width:25%;color:var(--muted);font-size:13px;}
+  .col-num{width:9%;font-size:12.5px;color:var(--muted);}
+  .col-fecha{width:8%;font-size:12.5px;color:var(--muted);white-space:nowrap;}
+  .col-estado{width:12%;}
+  .col-prior{width:8%;}
+  .col-del{width:36px;text-align:center;}
+  select.estado-sel, select.prior-sel{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;border:1px solid transparent;border-radius:20px;padding:5px 11px;cursor:pointer;appearance:none;-webkit-appearance:none;}
+  .estado-sel[data-v="Radicado"]{color:var(--blue);background:var(--blue-tint);}
+  .estado-sel[data-v="En comisión"]{color:var(--amber);background:var(--amber-tint);}
+  .estado-sel[data-v="Aprobado"]{color:var(--green);background:var(--green-tint);}
+  .estado-sel[data-v="Archivado"]{color:var(--red);background:var(--red-tint);}
+  .estado-sel[data-v="En formulación"]{color:var(--muted);background:var(--panel-2);}
+  .prior-sel[data-v="Alta"]{color:var(--red);background:var(--red-tint);}
+  .prior-sel[data-v="Media"]{color:var(--amber);background:var(--amber-tint);}
+  .prior-sel[data-v="Baja"]{color:var(--muted);background:var(--panel-2);}
+  .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;}
+  .del-btn:hover{color:var(--red);}
+  .empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;background:var(--panel);border:1px solid var(--line);border-top:none;border-radius:0 0 var(--radius) var(--radius);}
+  .loading{text-align:center;padding:60px 20px;color:var(--muted);font-size:13.5px;}
+  .col-docs{width:8%;text-align:center;}
+  .docs-btn{font-size:12px;font-weight:600;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);padding:6px 11px;border-radius:20px;cursor:pointer;white-space:nowrap;}
+  .docs-btn:hover{border-color:var(--blue-dim);color:var(--text);box-shadow:var(--sombra-sutil);}
+  .docs-btn.has-docs{border-color:var(--blue-dim);color:var(--blue);background:var(--blue-tint);}
+  .docs-btn.open{background:var(--navy);color:#fff;border-color:var(--navy);box-shadow:0 2px 6px rgba(16,26,46,.2);}
+  .docs-row td{background:var(--panel-2);padding:16px 20px;border-bottom:1px solid var(--line);}
+  .docs-panel{font-size:13px;}
+  .docs-list{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:6px;}
+  .doc-item{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:7px;padding:8px 12px;font-size:13px;}
+  .doc-icon{color:var(--blue);font-size:14px;}
+  .doc-name{flex:1;color:var(--text);}
+  .doc-name a{color:var(--blue);text-decoration:none;border-bottom:1px dotted var(--blue-dim);}
+  .doc-name a:hover{color:var(--navy);}
+  .doc-meta{color:var(--muted);font-size:11px;white-space:nowrap;}
+  .doc-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;}
+  .doc-del:hover{color:var(--red);}
+  .docs-empty{color:var(--muted);font-size:12.5px;margin:0 0 14px;font-style:italic;}
+  .docs-add{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:12px;}
+  .docs-add input[type="text"]{background:var(--panel);border:1px solid var(--line);border-radius:6px;color:var(--text);padding:7px 10px;font-size:12.5px;}
+  .docs-add input[name="doc-nombre"]{flex:1;min-width:160px;}
+  .docs-add input[name="doc-link"]{flex:1.4;min-width:220px;}
+  .docs-save{background:var(--blue);border:1px solid var(--blue);color:#fff;font-weight:700;border-radius:6px;padding:7px 14px;font-size:12.5px;cursor:pointer;}
+  .docs-save:hover{background:#1a41ab;}
+  .docs-note{width:100%;color:var(--muted);font-size:11px;margin-top:8px;line-height:1.5;}
+  .origen-tag{display:inline-block;font-size:10px;font-weight:700;color:var(--amber);
+    background:var(--amber-tint);border-radius:20px;padding:2px 8px;margin-top:5px;}
+  .origen-tag.mia{color:var(--blue);background:var(--blue-tint);}
+  .pendiente{font-size:12.5px;color:var(--amber);background:var(--amber-tint);
+    border:1px solid #f0dcbc;border-left:3px solid var(--amber);border-radius:6px;
+    padding:11px 14px;margin-bottom:20px;line-height:1.55;}
+  .pendiente b{color:var(--text);}
+  .source-tag{display:inline-block;font-size:10px;font-weight:700;color:var(--green);background:var(--green-tint);border-radius:20px;padding:2px 8px;margin-top:5px;}
+  footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  .export-btn{font-size:12px;font-weight:600;background:var(--panel);border:1px solid var(--line);color:var(--muted);padding:8px 16px;border-radius:6px;cursor:pointer;transition:all var(--transicion);}
+  .export-btn:hover{color:var(--panel);background:var(--navy);border-color:var(--navy);box-shadow:var(--sombra-media);transform:translateY(-1px);}
+  @media (max-width:900px){
+    .stats{grid-template-columns:repeat(3,1fr);}
+    .meta-row{gap:22px;}
+  }
+  @media (max-width:860px){
+    .navy-bar{padding:10px 16px;}
+    .inner{padding:0 16px;}
+    header.page-head{padding:20px 16px 18px;}
+    h1{font-size:22px;}
+    .stats{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:24px;}
+    .stat{padding:13px 14px;}
+    .stat .n{font-size:23px;}
+    /* Las pestañas no se envuelven: se deslizan de lado */
+    .tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
+      margin:0 -16px 20px;padding:0 16px 6px;}
+    .direccion-head p{margin-left:0;}
+    .add-btn{width:100%;}
+
+    /* La tabla se convierte en una tarjeta por iniciativa.
+       Sin restablecer los anchos de columna, los porcentajes del escritorio
+       (22%, 9%, 8%…) siguen aplicando sobre bloques y parten las palabras. */
+    table{border:none;background:none;border-radius:0;overflow:visible;}
+    thead{display:none;}
+    table, tbody, tr, td{display:block;}
+    tbody tr{position:relative;background:var(--panel);border:1px solid var(--line);
+      border-radius:var(--radius);padding:14px 42px 8px 14px;margin-bottom:10px;}
+    tbody td, tbody tr:last-child td{width:auto;padding:0;border-bottom:none;}
+    .col-iniciativa,.col-objeto,.col-num,.col-estado,
+    .col-prior,.col-fecha,.col-docs,.col-del{width:auto;}
+    .col-iniciativa{font-size:14.5px;line-height:1.35;margin-bottom:8px;}
+    .col-objeto{margin-bottom:12px;line-height:1.5;}
+    /* Los campos ocupan todo el ancho de la tarjeta y se ven como campos:
+       de lo contrario el área tocable es apenas el largo del texto, y un
+       título corto como "Nueva iniciativa" queda casi imposible de tocar. */
+    .cell-editable{display:block;width:100%;min-width:0;padding:8px 10px;
+      border:1px dashed #ccd3e0;border-radius:6px;background:var(--panel-2);
+      min-height:19px;font-weight:inherit;}
+    .cell-editable:focus{border-style:solid;border-color:var(--blue);
+      background:var(--blue-tint);box-shadow:none;}
+    /* Pares fijos: [No. proyecto | Estado] · [Prioridad | Actualización] · [Documentos]
+       Sin anchos constantes, el orden cambia de tarjeta a tarjeta según el
+       largo de cada valor. */
+    .col-num,.col-estado,.col-prior,.col-fecha{
+      display:inline-block;vertical-align:top;text-align:left;
+      width:calc(50% - 6px);margin:0 0 12px;}
+    .col-num,.col-prior{margin-right:12px;}
+    .col-docs{display:block;width:100%;text-align:left;margin-bottom:2px;}
+    select.estado-sel, select.prior-sel{font-size:12.5px;padding:7px 14px;}
+    .col-del{position:absolute;top:9px;right:9px;text-align:right;}
+    .del-btn{font-size:20px;padding:2px 4px;}
+    /* Etiquetas propias, porque el encabezado de la tabla queda oculto */
+    .col-num::before,.col-fecha::before,.col-docs::before,
+    .col-estado::before,.col-prior::before{
+      content:attr(data-etq);display:block;font-size:9.5px;text-transform:uppercase;
+      letter-spacing:.07em;color:var(--muted);font-weight:700;margin-bottom:4px;}
+
+    .docs-row{margin:-6px 0 10px;}
+    .docs-row td{padding:12px;}
+    .docs-add{flex-direction:column;align-items:stretch;}
+    .docs-add input[name="doc-nombre"],
+    .docs-add input[name="doc-link"]{min-width:0;width:100%;}
+    .docs-save{width:100%;}
+    .doc-item{flex-wrap:wrap;}
+    .doc-meta{width:100%;}
+    footer{flex-direction:column;align-items:flex-start;}
+    .export-btn{width:100%;}
+  }
+  @media (max-width:420px){
+    .stats{grid-template-columns:1fr 1fr;}
+    .navy-bar{flex-direction:column;align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="navy-bar">
+    <div class="eyebrow">Ministerio del Interior · Viceministerio para el Diálogo Social y los Derechos Humanos</div>
+    <div class="sync-status">
+      <span id="usuario-barra"></span>
+      <span class="sync-dot" id="sync-dot"></span><span id="sync-text">Conectando…</span>
+    </div>
+  </div>
+
+  <header class="page-head">
+    <div class="inner">
+      <h1>Iniciativas Legislativas por Dirección</h1>
+      <div class="sub">Registro y seguimiento de las iniciativas legislativas de las direcciones vinculadas al Viceministerio: estado del trámite, prioridad y documentación soporte. Los datos se guardan en la base de datos institucional y son visibles para todo el equipo.</div>
+      <div class="meta-row">
+        <div class="meta-item"><div class="l">Dirigido a</div><div class="v">Despacho del Viceministro</div></div>
+        <div class="meta-item"><div class="l">Corte</div><div class="v" id="fecha-corte"></div></div>
+        <div class="meta-item"><div class="l">Clasificación</div><div class="v">Uso interno</div></div>
+        <div class="meta-item"><div class="l">Direcciones vinculadas</div><div class="v">6</div></div>
+      </div>
+    </div>
+  </header>
+
+<div class="wrap">
+  <div class="inner content">
+
+    <div class="notice">
+      <b>Tablero compartido:</b> los datos se guardan en la base de datos del servidor — cualquier persona que acceda a esta misma URL (dentro de la red institucional) verá y podrá editar las mismas iniciativas y documentos. El gestor de documentos funciona con <b>enlaces</b> al repositorio institucional (Drive, gestor documental, SECOP, etc.).
+    </div>
+
+    <div id="loading-view" class="loading">Cargando iniciativas…</div>
+    <div id="error-view" class="loading" style="display:none;color:var(--red);"></div>
+
+    <div id="main-view" style="display:none;">
+
+      <div class="section-title"><div class="badge-num">1</div><h2>Resumen general</h2></div>
+      <div class="stats" id="stats"></div>
+
+      <div class="section-title"><div class="badge-num">2</div><h2>Iniciativas por dirección</h2></div>
+      <div class="tabs" id="tabs"></div>
+
+      <div class="direccion-head">
+        <div>
+          <h2 id="dir-title" style="font-size:16px;margin:0;font-weight:700;"></h2>
+          <p id="dir-desc"></p>
+        </div>
+        <button class="add-btn" id="add-btn">+ Añadir iniciativa</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="col-iniciativa">Iniciativa</th>
+            <th class="col-objeto">Objeto / alcance</th>
+            <th class="col-num">No. proyecto</th>
+            <th class="col-estado">Estado</th>
+            <th class="col-prior">Prioridad</th>
+            <th class="col-fecha">Actualización</th>
+            <th class="col-docs">Documentos</th>
+            <th class="col-del"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty" id="empty-msg" style="display:none;">No hay iniciativas registradas. Use "+ Añadir iniciativa" para comenzar.</div>
+
+      <footer>
+        <span>Tablero de trabajo interno · no constituye registro oficial del trámite legislativo</span>
+        <button class="export-btn" id="export-btn">Exportar CSV</button>
+      </footer>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// Si el frontend se sirve desde el mismo backend Express, esto basta.
+// Si lo aloja aparte, cambie API_BASE por la URL completa del backend.
+const API_BASE = '/api';
+
+const direcciones = [];   // se carga desde /api/direcciones
+let usuarioActual = null; // se carga desde /api/auth/sesion
+
+const ROL_LEGIBLE = {
+  viceministro: 'Viceministro', director: 'Director', editor: 'Editor', lector: 'Lector'
+};
+
+function mostrarUsuario(){
+  const cont = document.getElementById('usuario-barra');
+  if(!cont || !usuarioActual) return;
+  cont.textContent = '';
+
+  const quien = document.createElement('span');
+  quien.className = 'usuario-nombre';
+  quien.textContent = usuarioActual.nombre + ' · ' + (ROL_LEGIBLE[usuarioActual.rol] || usuarioActual.rol);
+  cont.appendChild(quien);
+
+  const salir = document.createElement('button');
+  salir.className = 'usuario-salir';
+  salir.textContent = 'Cerrar sesión';
+  salir.onclick = cerrarSesion;
+  cont.appendChild(salir);
+}
+let activeId = null;
+const expandedDocs = new Set();
+
+function fmtFecha(){
+  const d = new Date();
+  return d.toLocaleDateString('es-CO', {day:'numeric', month:'long', year:'numeric'});
+}
+document.getElementById('fecha-corte').textContent = fmtFecha();
+
+function setSync(state, msg){
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-text');
+  dot.className = 'sync-dot' + (state === 'saving' ? ' saving' : state === 'error' ? ' error' : '');
+  txt.textContent = msg || (state === 'saving' ? 'Guardando…' : state === 'error' ? 'Error de conexión' : 'Conectado');
+}
+
+async function api(path, options){
+  const res = await fetch(API_BASE + path, {
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    ...options
+  });
+  if(res.status === 401){
+    // Sesión vencida o no iniciada: se vuelve al login conservando el destino.
+    location.href = '/login.html?volver=' + encodeURIComponent(location.pathname);
+    throw new Error('Sesión no iniciada');
+  }
+  if(!res.ok){
+    const body = await res.json().catch(() => ({}));
+    if(body.codigo === 'CAMBIO_REQUERIDO'){
+      location.href = '/login.html?cambiar=1';
+      throw new Error(body.error);
+    }
+    throw new Error(body.error || ('Error HTTP ' + res.status));
+  }
+  return res.status === 204 ? null : res.json();
+}
+
+async function cerrarSesion(){
+  try{ await api('/auth/salir', { method: 'POST' }); } catch(err){ /* la cookie ya pudo expirar */ }
+  location.href = '/login.html';
+}
+
+function getDir(id){ return direcciones.find(d => d.id === id); }
+
+// ---------------------------------------------------------------------
+// Carga inicial: direcciones + iniciativas de cada una
+// ---------------------------------------------------------------------
+async function init(){
+  try{
+    const { usuario } = await api('/auth/sesion');
+    usuarioActual = usuario;
+    mostrarUsuario();
+
+    if(usuario.pendiente_aprobacion){
+      const nota = document.createElement('div');
+      nota.className = 'pendiente';
+      nota.innerHTML = '<b>Su cuenta está pendiente de aprobación.</b> Puede consultar el ' +
+        'tablero y ver sus propuestas marcadas, pero aún no puede editar. Un administrador ' +
+        'le asignará dirección y permisos.';
+      const cont = document.getElementById('main-view');
+      cont.insertBefore(nota, cont.firstChild);
+    }
+
+    const dirs = await api('/direcciones');
+    dirs.forEach(d => direcciones.push({
+      id: d.id, nombre: d.nombre, corto: d.nombre_corto, desc: d.descripcion, items: []
+    }));
+    activeId = direcciones[0]?.id || null;
+
+    await Promise.all(direcciones.map(loadIniciativas));
+
+    document.getElementById('loading-view').style.display = 'none';
+    document.getElementById('main-view').style.display = 'block';
+    setSync('ok');
+    renderAll();
+  } catch(err){
+    console.error(err);
+    document.getElementById('loading-view').style.display = 'none';
+    const ev = document.getElementById('error-view');
+    ev.style.display = 'block';
+    ev.textContent = 'No se pudo conectar con la API (' + API_BASE + '). Verifique que el backend esté corriendo y accesible. Detalle: ' + err.message;
+    setSync('error', 'Sin conexión');
+  }
+}
+
+async function loadIniciativas(d){
+  const rows = await api('/iniciativas?direccion_id=' + encodeURIComponent(d.id));
+  d.items = rows.map(r => ({
+    id: r.id,
+    ini: r.nombre,
+    obj: r.objeto || '',
+    num: r.numero_proyecto || '',
+    estado: r.estado,
+    prior: r.prioridad,
+    fecha: r.fecha_actualizacion ? r.fecha_actualizacion.substring(0,10) : '',
+    fuente: !!r.fuente_publica,
+    origen: r.origen || 'interna',
+    propuestaPor: r.propuesta_por || null,
+    propuestaNombre: r.propuesta_nombre || '',
+    totalDocs: r.total_documentos || 0,
+    docs: null // se cargan bajo demanda al abrir el panel
+  }));
+}
+
+async function loadDocumentos(item){
+  if(item.docs !== null) return;
+  const rows = await api('/iniciativas/' + item.id + '/documentos');
+  item.docs = rows.map(r => ({ id: r.id, nombre: r.nombre, url: r.enlace, fecha: r.fecha ? r.fecha.substring(0,10) : '' }));
+}
+
+function renderTabs(){
+  const tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = '';
+  direcciones.forEach(d => {
+    const tab = document.createElement('div');
+    tab.className = 'tab' + (d.id === activeId ? ' active' : '');
+    tab.innerHTML = d.corto + '<span class="count">' + d.items.length + '</span>';
+    tab.onclick = () => { activeId = d.id; renderAll(); };
+    tabsEl.appendChild(tab);
+  });
+}
+
+async function renderStats(){
+  try{
+    const s = await api('/estadisticas');
+    const cards = [
+      [s.total || 0, 'Iniciativas totales'],
+      [s.radicadas || 0, 'Radicadas'],
+      [s.en_comision || 0, 'En comisión'],
+      [s.aprobadas || 0, 'Aprobadas'],
+      [s.prioridad_alta || 0, 'Prioridad alta']
+    ];
+    document.getElementById('stats').innerHTML =
+      cards.map(([n,l]) => '<div class="stat"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>').join('');
+  } catch(err){
+    console.error(err);
+  }
+}
+
+function renderHead(){
+  const d = getDir(activeId);
+  if(!d) return;
+  document.getElementById('dir-title').textContent = d.nombre;
+  document.getElementById('dir-desc').textContent = d.desc;
+}
+
+function renderTable(){
+  const d = getDir(activeId);
+  const tbody = document.getElementById('tbody');
+  const emptyMsg = document.getElementById('empty-msg');
+  tbody.innerHTML = '';
+  if(!d || d.items.length === 0){
+    emptyMsg.style.display = 'block';
+    return;
+  }
+  emptyMsg.style.display = 'none';
+
+  d.items.forEach((item) => {
+    const tr = document.createElement('tr');
+
+    const tdIni = document.createElement('td');
+    tdIni.className = 'col-iniciativa'; tdIni.setAttribute('data-etq', 'Iniciativa');
+    const spanIni = document.createElement('span');
+    spanIni.className = 'cell-editable'; spanIni.contentEditable = true; spanIni.textContent = item.ini; spanIni.setAttribute('data-vacio', 'Escriba el nombre de la iniciativa');
+    spanIni.onblur = () => { if(spanIni.textContent !== item.ini){ item.ini = spanIni.textContent; guardarCampos(item); } };
+    spanIni.setAttribute('data-ini-id', item.id);
+    tdIni.appendChild(spanIni);
+    if(item.fuente){
+      const tag = document.createElement('div'); tag.className = 'source-tag'; tag.textContent = 'fuente pública';
+      tdIni.appendChild(tag);
+    }
+    if(item.origen === 'propuesta'){
+      const marca = document.createElement('div');
+      const mia = usuarioActual && item.propuestaPor === usuarioActual.id;
+      marca.className = 'origen-tag' + (mia ? ' mia' : '');
+      marca.textContent = mia ? 'propuesta mía'
+        : 'propuesta' + (item.propuestaNombre ? ' · ' + item.propuestaNombre : '');
+      tdIni.appendChild(marca);
+    }
+    tr.appendChild(tdIni);
+
+    const tdObj = document.createElement('td'); tdObj.className = 'col-objeto';
+    const spanObj = document.createElement('span');
+    spanObj.className = 'cell-editable'; spanObj.contentEditable = true; spanObj.textContent = item.obj; spanObj.setAttribute('data-vacio', 'Sin objeto registrado');
+    spanObj.onblur = () => { if(spanObj.textContent !== item.obj){ item.obj = spanObj.textContent; guardarCampos(item); } };
+    tdObj.appendChild(spanObj); tr.appendChild(tdObj);
+
+    const tdNum = document.createElement('td'); tdNum.className = 'col-num'; tdNum.setAttribute('data-etq', 'No. proyecto');
+    const spanNum = document.createElement('span');
+    spanNum.className = 'cell-editable'; spanNum.contentEditable = true; spanNum.textContent = item.num; spanNum.setAttribute('data-vacio', 'Sin radicar');
+    spanNum.onblur = () => { if(spanNum.textContent !== item.num){ item.num = spanNum.textContent; guardarCampos(item); } };
+    tdNum.appendChild(spanNum); tr.appendChild(tdNum);
+
+    const tdEstado = document.createElement('td'); tdEstado.className = 'col-estado'; tdEstado.setAttribute('data-etq', 'Estado');
+    const selEstado = document.createElement('select'); selEstado.className = 'estado-sel';
+    ['En formulación','Radicado','En comisión','Aprobado','Archivado'].forEach(opt => {
+      const o = document.createElement('option'); o.value = opt; o.textContent = opt;
+      if(opt === item.estado) o.selected = true; selEstado.appendChild(o);
+    });
+    selEstado.setAttribute('data-v', item.estado);
+    selEstado.onchange = () => { item.estado = selEstado.value; selEstado.setAttribute('data-v', selEstado.value); renderStats(); guardarCampos(item); };
+    tdEstado.appendChild(selEstado); tr.appendChild(tdEstado);
+
+    const tdPrior = document.createElement('td'); tdPrior.className = 'col-prior'; tdPrior.setAttribute('data-etq', 'Prioridad');
+    const selPrior = document.createElement('select'); selPrior.className = 'prior-sel';
+    ['Alta','Media','Baja'].forEach(opt => {
+      const o = document.createElement('option'); o.value = opt; o.textContent = opt;
+      if(opt === item.prior) o.selected = true; selPrior.appendChild(o);
+    });
+    selPrior.setAttribute('data-v', item.prior);
+    selPrior.onchange = () => { item.prior = selPrior.value; selPrior.setAttribute('data-v', selPrior.value); renderStats(); guardarCampos(item); };
+    tdPrior.appendChild(selPrior); tr.appendChild(tdPrior);
+
+    const tdFecha = document.createElement('td'); tdFecha.className = 'col-fecha'; tdFecha.setAttribute('data-etq', 'Actualización');
+    const spanFecha = document.createElement('span');
+    spanFecha.className = 'cell-editable'; spanFecha.contentEditable = true; spanFecha.textContent = item.fecha; spanFecha.setAttribute('data-vacio', 'AAAA-MM-DD');
+    spanFecha.onblur = () => { if(spanFecha.textContent !== item.fecha){ item.fecha = spanFecha.textContent; guardarCampos(item); } };
+    tdFecha.appendChild(spanFecha); tr.appendChild(tdFecha);
+
+    const tdDocs = document.createElement('td'); tdDocs.className = 'col-docs'; tdDocs.setAttribute('data-etq', 'Documentos');
+    const btnDocs = document.createElement('button');
+    const isOpen = expandedDocs.has(item.id);
+    btnDocs.className = 'docs-btn' + (item.totalDocs ? ' has-docs' : '') + (isOpen ? ' open' : '');
+    btnDocs.textContent = '📎 ' + item.totalDocs;
+    btnDocs.onclick = async () => {
+      if(expandedDocs.has(item.id)) expandedDocs.delete(item.id);
+      else { expandedDocs.add(item.id); await loadDocumentos(item); }
+      renderTable();
+    };
+    tdDocs.appendChild(btnDocs); tr.appendChild(tdDocs);
+
+    const tdDel = document.createElement('td'); tdDel.className = 'col-del';
+    const btnDel = document.createElement('button'); btnDel.className = 'del-btn'; btnDel.textContent = '✕';
+    btnDel.onclick = async () => {
+      setSync('saving');
+      try{ await api('/iniciativas/' + item.id, { method: 'DELETE' }); }
+      catch(err){ setSync('error'); alert('No se pudo eliminar: ' + err.message); return; }
+      d.items = d.items.filter(x => x.id !== item.id);
+      renderAll(); setSync('ok');
+    };
+    tdDel.appendChild(btnDel); tr.appendChild(tdDel);
+
+    tbody.appendChild(tr);
+    if(isOpen && item.docs !== null) tbody.appendChild(buildDocsRow(item));
+  });
+}
+
+async function guardarCampos(item){
+  setSync('saving');
+  try{
+    await api('/iniciativas/' + item.id, {
+      method: 'PUT',
+      body: JSON.stringify({
+        nombre: item.ini, objeto: item.obj, numero_proyecto: item.num,
+        estado: item.estado, prioridad: item.prior, fecha_actualizacion: item.fecha || null
+      })
+    });
+    setSync('ok');
+  } catch(err){
+    setSync('error');
+    console.error(err);
+  }
+}
+
+function buildDocsRow(item){
+  const tr = document.createElement('tr'); tr.className = 'docs-row';
+  const td = document.createElement('td'); td.colSpan = 8;
+  const panel = document.createElement('div'); panel.className = 'docs-panel';
+
+  if(item.docs.length){
+    const ul = document.createElement('ul'); ul.className = 'docs-list';
+    item.docs.forEach((doc) => {
+      const li = document.createElement('li'); li.className = 'doc-item';
+      const icon = document.createElement('span'); icon.className = 'doc-icon'; icon.textContent = '📄'; li.appendChild(icon);
+      const nameSpan = document.createElement('span'); nameSpan.className = 'doc-name';
+      if(doc.url){ const a = document.createElement('a'); a.href = doc.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = doc.nombre; nameSpan.appendChild(a); }
+      else nameSpan.textContent = doc.nombre;
+      li.appendChild(nameSpan);
+      const meta = document.createElement('span'); meta.className = 'doc-meta'; meta.textContent = doc.fecha; li.appendChild(meta);
+      const del = document.createElement('button'); del.className = 'doc-del'; del.textContent = '✕';
+      del.onclick = async () => {
+        setSync('saving');
+        try{ await api('/documentos/' + doc.id, { method: 'DELETE' }); }
+        catch(err){ setSync('error'); alert('No se pudo eliminar: ' + err.message); return; }
+        item.docs = item.docs.filter(x => x.id !== doc.id);
+        item.totalDocs = item.docs.length;
+        renderTable(); renderTabs(); setSync('ok');
+      };
+      li.appendChild(del);
+      ul.appendChild(li);
+    });
+    panel.appendChild(ul);
+  } else {
+    const p = document.createElement('p'); p.className = 'docs-empty'; p.textContent = 'Sin documentos adjuntos.'; panel.appendChild(p);
+  }
+
+  const addRow = document.createElement('div'); addRow.className = 'docs-add';
+  const inputNombre = document.createElement('input'); inputNombre.type = 'text'; inputNombre.name = 'doc-nombre'; inputNombre.placeholder = 'Nombre del documento';
+  const inputLink = document.createElement('input'); inputLink.type = 'text'; inputLink.name = 'doc-link'; inputLink.placeholder = 'Enlace (Drive, gestor documental, SECOP...)';
+  const saveBtn = document.createElement('button'); saveBtn.className = 'docs-save'; saveBtn.textContent = 'Agregar';
+  saveBtn.onclick = async () => {
+    const nombre = inputNombre.value.trim();
+    const link = inputLink.value.trim();
+    if(!nombre){ inputNombre.focus(); return; }
+    setSync('saving');
+    try{
+      const hoy = new Date().toISOString().slice(0,10);
+      const { id } = await api('/iniciativas/' + item.id + '/documentos', {
+        method: 'POST', body: JSON.stringify({ nombre, enlace: link || null, fecha: hoy })
+      });
+      item.docs.push({ id, nombre, url: link || null, fecha: hoy });
+      item.totalDocs = item.docs.length;
+      renderTable(); renderTabs(); setSync('ok');
+    } catch(err){ setSync('error'); alert('No se pudo agregar: ' + err.message); }
+  };
+  addRow.appendChild(inputNombre); addRow.appendChild(inputLink); addRow.appendChild(saveBtn);
+
+  const note = document.createElement('div'); note.className = 'docs-note';
+  note.textContent = 'Use el campo "Enlace" para apuntar al documento en el repositorio institucional (Drive, OneDrive, gestor documental, SECOP).';
+  addRow.appendChild(note);
+
+  panel.appendChild(addRow);
+  td.appendChild(panel); tr.appendChild(td);
+  return tr;
+}
+
+document.getElementById('add-btn').onclick = async () => {
+  const d = getDir(activeId);
+  if(!d) return;
+  setSync('saving');
+  try{
+    const hoy = new Date().toISOString().slice(0,10);
+    const { id } = await api('/iniciativas', {
+      method: 'POST',
+      body: JSON.stringify({ direccion_id: d.id, nombre: 'Nueva iniciativa', objeto: '', numero_proyecto: '', estado: 'En formulación', prioridad: 'Media', fecha_actualizacion: hoy })
+    });
+    d.items.push({ id, ini:'Nueva iniciativa', obj:'', num:'', estado:'En formulación', prior:'Media', fecha:hoy, fuente:false, totalDocs:0, docs:[] });
+    renderAll(); setSync('ok');
+    enfocarNombre(id);
+  } catch(err){ setSync('error'); alert('No se pudo crear: ' + err.message); }
+};
+
+// Lleva el foco al nombre de la iniciativa recién creada y selecciona el texto,
+// para que se pueda escribir encima sin tener que buscar la fila ni borrar antes.
+function enfocarNombre(id){
+  const campo = document.querySelector('[data-ini-id="' + id + '"]');
+  if(!campo) return;
+  campo.scrollIntoView({ behavior:'smooth', block:'center' });
+  campo.focus();
+  const rango = document.createRange();
+  rango.selectNodeContents(campo);
+  const sel = window.getSelection();
+  sel.removeAllRanges(); sel.addRange(rango);
+}
+
+document.getElementById('export-btn').onclick = () => {
+  window.location.href = API_BASE + '/exportar-csv';
+};
+
+function renderAll(){
+  renderTabs();
+  renderStats();
+  renderHead();
+  renderTable();
+}
+
+init();
+</script>
+</body>
+</html>

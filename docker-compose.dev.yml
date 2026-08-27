@@ -1,0 +1,35 @@
+# =====================================================================
+# Desarrollo. MySQL en contenedor, API y web corriendo con recarga en
+# caliente desde el disco.
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#   cd api && npm install && npm run dev
+#   cd web && npm install && npm run dev
+# =====================================================================
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: desarrollo
+      MYSQL_DATABASE: iniciativas_legislativas
+      MYSQL_USER: iniciativas_app
+      MYSQL_PASSWORD: desarrollo
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    ports:
+      # Solo en desarrollo: permite conectar un cliente desde el host
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - datos_mysql_dev:/var/lib/mysql
+      - ./db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-pdesarrollo"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+volumes:
+  datos_mysql_dev:
