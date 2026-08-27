@@ -1,0 +1,36 @@
+[submodule "front-tablero"]
+	path = front-tablero
+	url = https://github.com/hernan-Saroa/front-tablero.git
+[submodule "front-radicacion"]
+	path = front-radicacion
+	url = https://github.com/hernan-Saroa/front-radicacion.git
+[submodule "front-admin"]
+	path = front-admin
+	url = https://github.com/hernan-Saroa/front-admin.git
+[submodule "ms-autenticacion"]
+	path = ms-autenticacion
+	url = https://github.com/hernan-Saroa/ms-autenticacion.git
+[submodule "ms-iniciativas"]
+	path = ms-iniciativas
+	url = https://github.com/hernan-Saroa/ms-iniciativas.git
+[submodule "ms-radicacion"]
+	path = ms-radicacion
+	url = https://github.com/hernan-Saroa/ms-radicacion.git
+[submodule "ms-flujo-estados"]
+	path = ms-flujo-estados
+	url = https://github.com/hernan-Saroa/ms-flujo-estados.git
+[submodule "ms-notificaciones"]
+	path = ms-notificaciones
+	url = https://github.com/hernan-Saroa/ms-notificaciones.git
+[submodule "ms-administracion"]
+	path = ms-administracion
+	url = https://github.com/hernan-Saroa/ms-administracion.git
+[submodule "api-gateway"]
+	path = api-gateway
+	url = https://github.com/hernan-Saroa/api-gateway.git
+[submodule "infra-iniciativas"]
+	path = infra-iniciativas
+	url = https://github.com/hernan-Saroa/infra-iniciativas.git
+[submodule "tipos-compartidos"]
+	path = tipos-compartidos
+	url = https://github.com/hernan-Saroa/tipos-compartidos.git
