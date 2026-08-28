@@ -6,10 +6,8 @@
 #   cd ms-autenticacion && npm install && npm run dev   # y cada MS
 #   cd front-tablero    && npm install && npm run dev
 #
-# La versión anterior montaba ./db en /docker-entrypoint-initdb.d, carpeta
-# retirada al pasar a multi-repositorio, así que la base nacía vacía. Ahora
-# un servicio `migrador-dev` aplica las 17 migraciones (repartidas en los
-# ms-*/migraciones) en orden numérico, deduplicando la 06. Ver F-01.
+# Las 17 migraciones viven centralizadas en db-iniciativas/migraciones.
+# El migrador-dev las aplica en orden numerico al levantar.
 # =====================================================================
 
 services:
@@ -40,18 +38,15 @@ services:
     environment:
       MYSQL_PWD: desarrollo
     volumes:
-      - ./ms-iniciativas/migraciones:/mig/iniciativas:ro
-      - ./ms-autenticacion/migraciones:/mig/autenticacion:ro
-      - ./ms-radicacion/migraciones:/mig/radicacion:ro
-      - ./ms-flujo-estados/migraciones:/mig/flujo:ro
-      - ./ms-administracion/migraciones:/mig/administracion:ro
+      # Fuente unica: el repo centralizado de base de datos
+      - ./db-iniciativas/migraciones:/migraciones:ro
     command:
       - sh
       - -c
       - |
         set -e
-        echo "Aplicando migraciones (dev)…"
-        for f in $$(for p in /mig/*/*.sql; do echo "$$(basename $$p)|$$p"; done | sort | awk -F'|' '!v[$$1]++{print $$2}'); do
+        echo "Aplicando migraciones desde db-iniciativas..."
+        for f in /migraciones/*.sql; do
           echo "  -> $$(basename $$f)"
           mysql --default-character-set=utf8mb4 -h mysql -u root iniciativas_legislativas < "$$f"
         done
@@ -60,3 +55,4 @@ services:
 
 volumes:
   datos_mysql_dev:
+
