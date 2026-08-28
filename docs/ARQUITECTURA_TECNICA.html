@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Manual de Usuario — Sistema de Iniciativas Legislativas</title>
+<title>Arquitectura Técnica — Sistema de Iniciativas Legislativas</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -226,7 +226,7 @@
 
 <p>El proyecto usa un <strong>repositorio agregador</strong> con 13 submódulos Git:</p>
 
-<table><thead><tr><th>Submódulo</th><th>Tipo</th><th>Puerto</th><th>Repositorio</th></tr></thead><tbody><tr><td><code>front-tablero</code></td><td>Frontend</td><td>8080</td><td>hernan-Saroa/front-tablero</td></tr><tr><td><code>front-radicacion</code></td><td>Frontend</td><td>8081</td><td>hernan-Saroa/front-radicacion</td></tr><tr><td><code>front-admin</code></td><td>Frontend</td><td>8082</td><td>hernan-Saroa/front-admin</td></tr><tr><td><code>api-gateway</code></td><td>Gateway</td><td>3000</td><td>hernan-Saroa/api-gateway</td></tr><tr><td><code>ms-autenticacion</code></td><td>Microservicio</td><td>3001</td><td>hernan-Saroa/ms-autenticacion</td></tr><tr><td><code>ms-iniciativas</code></td><td>Microservicio</td><td>3002</td><td>hernan-Saroa/ms-iniciativas</td></tr><tr><td><code>ms-radicacion</code></td><td>Microservicio</td><td>3003</td><td>hernan-Saroa/ms-radicacion</td></tr><tr><td><code>ms-flujo-estados</code></td><td>Microservicio</td><td>3004</td><td>hernan-Saroa/ms-flujo-estados</td></tr><tr><td><code>ms-notificaciones</code></td><td>Microservicio</td><td>3005</td><td>hernan-Saroa/ms-notificaciones</td></tr><tr><td><code>ms-administracion</code></td><td>Microservicio</td><td>3006</td><td>hernan-Saroa/ms-administracion</td></tr><tr><td><code>db-iniciativas</code></td><td>Base de datos</td><td>—</td><td>hernan-Saroa/db-iniciativas</td></tr><tr><td><code>infra-iniciativas</code></td><td>Infraestructura</td><td>—</td><td>hernan-Saroa/infra-iniciativas</td></tr><tr><td><code>tipos-compartidos</code></td><td>Tipos TS</td><td>—</td><td>hernan-Saroa/tipos-compartidos</td></tr></tbody></table>
+<table><thead><tr><th>Submódulo</th><th>Tipo</th><th>Puerto</th><th>Repositorio</th></tr></thead><tbody><tr><td><code>front-tablero</code></td><td>Frontend</td><td>8080</td><td>mininterior-iniciativas/front-tablero</td></tr><tr><td><code>front-radicacion</code></td><td>Frontend</td><td>8081</td><td>mininterior-iniciativas/front-radicacion</td></tr><tr><td><code>front-admin</code></td><td>Frontend</td><td>8082</td><td>mininterior-iniciativas/front-admin</td></tr><tr><td><code>api-gateway</code></td><td>Gateway</td><td>3000</td><td>mininterior-iniciativas/api-gateway</td></tr><tr><td><code>ms-autenticacion</code></td><td>Microservicio</td><td>3001</td><td>mininterior-iniciativas/ms-autenticacion</td></tr><tr><td><code>ms-iniciativas</code></td><td>Microservicio</td><td>3002</td><td>mininterior-iniciativas/ms-iniciativas</td></tr><tr><td><code>ms-radicacion</code></td><td>Microservicio</td><td>3003</td><td>mininterior-iniciativas/ms-radicacion</td></tr><tr><td><code>ms-flujo-estados</code></td><td>Microservicio</td><td>3004</td><td>mininterior-iniciativas/ms-flujo-estados</td></tr><tr><td><code>ms-notificaciones</code></td><td>Microservicio</td><td>3005</td><td>mininterior-iniciativas/ms-notificaciones</td></tr><tr><td><code>ms-administracion</code></td><td>Microservicio</td><td>3006</td><td>mininterior-iniciativas/ms-administracion</td></tr><tr><td><code>db-iniciativas</code></td><td>Base de datos</td><td>—</td><td>mininterior-iniciativas/db-iniciativas</td></tr><tr><td><code>infra-iniciativas</code></td><td>Infraestructura</td><td>—</td><td>mininterior-iniciativas/infra-iniciativas</td></tr><tr><td><code>tipos-compartidos</code></td><td>Tipos TS</td><td>—</td><td>mininterior-iniciativas/tipos-compartidos</td></tr></tbody></table>
 <h3>Estructura del repositorio agregador</h3>
 
 <pre><code class="language-">Iniciativas/                 ← Raíz del repo agregador
@@ -453,7 +453,7 @@
 <h3>9.5. Despliegue</h3>
 
 <pre><code class="language-bash"># 1. Clonar con submódulos
-<p>git clone --recurse-submodules https://github.com/hernan-Saroa/MININTERIOR---INICIATIVAS.git</p>
+<p>git clone --recurse-submodules https://github.com/mininterior-iniciativas/MININTERIOR---INICIATIVAS.git</p>
 
 <h1>2. Configurar</h1>
 <p>cp .env.example .env</p>
@@ -463,8 +463,8 @@
 <p>docker compose up -d --build</p>
 
 <h1>4. Verificar</h1>
-<p>curl http://localhost:8080        # Tablero</p>
-<p>curl http://localhost:3000/api/salud  # Gateway</p>
+<p>curl https://mininterior-iniciativas.fabricasoftware.co        # Tablero</p>
+<p>curl https://mininterior-iniciativas.fabricasoftware.co/api/salud  # Gateway</p>
 </code></pre>
 
 <hr/>

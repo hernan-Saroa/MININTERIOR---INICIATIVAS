@@ -132,8 +132,7 @@ La franja azul en degradado (de izquierda a derecha) contiene:
 
 - **Logo GOV.CO** (izquierda): enlaza al Portal Único del Estado Colombiano.
 - **Enlace «Inicio Mininterior»**: lleva a la web del Ministerio.
-- **Nombre del usuario** y su rol entre paréntesis (ej: *"Hernan Buitrago
-  (Superadmin)"*).
+- **Nombre del usuario** y su rol entre paréntesis (ej: *"Juan Pérez`n  (Administrador)"*).
 - **Accesos rápidos**: Administración, Comunidades, Salir.
 
 ### 3.2. Franja institucional blanca

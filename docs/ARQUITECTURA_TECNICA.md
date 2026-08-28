@@ -125,19 +125,19 @@ El proyecto usa un **repositorio agregador** con 13 submódulos Git:
 
 | Submódulo | Tipo | Puerto | Repositorio |
 |---|---|---|---|
-| `front-tablero` | Frontend | 8080 | hernan-Saroa/front-tablero |
-| `front-radicacion` | Frontend | 8081 | hernan-Saroa/front-radicacion |
-| `front-admin` | Frontend | 8082 | hernan-Saroa/front-admin |
-| `api-gateway` | Gateway | 3000 | hernan-Saroa/api-gateway |
-| `ms-autenticacion` | Microservicio | 3001 | hernan-Saroa/ms-autenticacion |
-| `ms-iniciativas` | Microservicio | 3002 | hernan-Saroa/ms-iniciativas |
-| `ms-radicacion` | Microservicio | 3003 | hernan-Saroa/ms-radicacion |
-| `ms-flujo-estados` | Microservicio | 3004 | hernan-Saroa/ms-flujo-estados |
-| `ms-notificaciones` | Microservicio | 3005 | hernan-Saroa/ms-notificaciones |
-| `ms-administracion` | Microservicio | 3006 | hernan-Saroa/ms-administracion |
-| `db-iniciativas` | Base de datos | — | hernan-Saroa/db-iniciativas |
-| `infra-iniciativas` | Infraestructura | — | hernan-Saroa/infra-iniciativas |
-| `tipos-compartidos` | Tipos TS | — | hernan-Saroa/tipos-compartidos |
+| `front-tablero` | Frontend | 8080 | mininterior-iniciativas/front-tablero |
+| `front-radicacion` | Frontend | 8081 | mininterior-iniciativas/front-radicacion |
+| `front-admin` | Frontend | 8082 | mininterior-iniciativas/front-admin |
+| `api-gateway` | Gateway | 3000 | mininterior-iniciativas/api-gateway |
+| `ms-autenticacion` | Microservicio | 3001 | mininterior-iniciativas/ms-autenticacion |
+| `ms-iniciativas` | Microservicio | 3002 | mininterior-iniciativas/ms-iniciativas |
+| `ms-radicacion` | Microservicio | 3003 | mininterior-iniciativas/ms-radicacion |
+| `ms-flujo-estados` | Microservicio | 3004 | mininterior-iniciativas/ms-flujo-estados |
+| `ms-notificaciones` | Microservicio | 3005 | mininterior-iniciativas/ms-notificaciones |
+| `ms-administracion` | Microservicio | 3006 | mininterior-iniciativas/ms-administracion |
+| `db-iniciativas` | Base de datos | — | mininterior-iniciativas/db-iniciativas |
+| `infra-iniciativas` | Infraestructura | — | mininterior-iniciativas/infra-iniciativas |
+| `tipos-compartidos` | Tipos TS | — | mininterior-iniciativas/tipos-compartidos |
 
 ### Estructura del repositorio agregador
 
@@ -558,7 +558,7 @@ graph LR
 
 ```bash
 # 1. Clonar con submódulos
-git clone --recurse-submodules https://github.com/hernan-Saroa/MININTERIOR---INICIATIVAS.git
+git clone --recurse-submodules https://github.com/mininterior-iniciativas/MININTERIOR---INICIATIVAS.git
 
 # 2. Configurar
 cp .env.example .env
@@ -568,8 +568,8 @@ cp .env.example .env
 docker compose up -d --build
 
 # 4. Verificar
-curl http://localhost:8080        # Tablero
-curl http://localhost:3000/api/salud  # Gateway
+curl https://mininterior-iniciativas.fabricasoftware.co        # Tablero
+curl https://mininterior-iniciativas.fabricasoftware.co/api/salud  # Gateway
 ```
 
 ---
