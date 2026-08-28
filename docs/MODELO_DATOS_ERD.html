@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Modelo de Datos y ERD (Nivel 3) — Sistema de Iniciativas Legislativas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+  :root {
+    --azul-gov: #003876;
+    --azul-accion: #2151d1;
+    --azul-claro: #f0f4ff;
+    --borde: #dbe0e6;
+    --borde-suave: #edf0f4;
+    --texto: #1a202c;
+    --tenue: #4a5568;
+    --fondo: #ffffff;
+    --fondo-alt: #f8fafc;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--texto);
+    background: var(--fondo);
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 36px;
+  }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--azul-gov);
+    border-bottom: 3px solid var(--azul-gov);
+    padding-bottom: 12px;
+    margin: 36px 0 16px;
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--azul-gov);
+    border-bottom: 2px solid var(--borde);
+    padding-bottom: 8px;
+    margin: 32px 0 14px;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--azul-accion);
+    margin: 24px 0 10px;
+  }
+
+  h4 {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--texto);
+    margin: 18px 0 8px;
+  }
+
+  p { margin: 8px 0; }
+  hr { border: none; border-top: 1px solid var(--borde); margin: 28px 0; }
+
+  a { color: var(--azul-accion); text-decoration: none; font-weight: 500; }
+  a:hover { text-decoration: underline; }
+
+  code {
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'Fira Code', 'Consolas', monospace;
+  }
+
+  pre {
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 16px 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 14px 0;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  blockquote {
+    border-left: 4px solid var(--azul-accion);
+    background: var(--azul-claro);
+    padding: 12px 18px;
+    margin: 14px 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    color: #1e3a8a;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 12.5px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  th, td {
+    border: 1px solid var(--borde);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--azul-gov);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.2px;
+  }
+  tr:nth-child(even) { background: var(--fondo-alt); }
+  tr:hover { background: #f1f5f9; }
+
+  ul, ol { margin: 8px 0 8px 24px; }
+  li { margin: 4px 0; }
+
+  .mermaid-wrap {
+    margin: 20px 0;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    overflow-x: auto;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+
+  @media print {
+    body { padding: 0; font-size: 11px; max-width: 100%; }
+    h1 { font-size: 19px; }
+    h2 { font-size: 15px; page-break-after: avoid; }
+    h3, h4 { page-break-after: avoid; }
+    table { page-break-inside: avoid; font-size: 10.5px; }
+    .mermaid-wrap { page-break-inside: avoid; border: 1px solid #ccc; box-shadow: none; }
+    blockquote { background: #f0f4ff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    th { background: var(--azul-gov) !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'neutral',
+      er: {
+        useMaxWidth: true,
+        diagramPadding: 20,
+        layoutDirection: 'TB',
+        minEntityWidth: 100,
+        minEntityHeight: 75,
+        entityPadding: 15,
+        stroke: '#003876',
+        fill: '#f8fafc',
+        fontSize: 12
+      }
+    });
+  });
+</script>
+</head>
+<body>
+<h1>Modelo de Datos y Diagrama Entidad-Relación (ERD) — Nivel 3</h1>
+
+<strong>Viceministerio para el Diálogo Social y los Derechos Humanos</strong>
+<p>Ministerio del Interior · República de Colombia</p>
+<strong>Plataforma:</strong> Sistema de Seguimiento de Iniciativas Legislativas
+<strong>Entorno de Producción:</strong> <code>https://mininterior-iniciativas.fabricasoftware.co/</code>
+<strong>Motor de Base de Datos:</strong> MySQL 8.4 Community Server (InnoDB, <code>utf8mb4_unicode_ci</code>)
+<strong>Versión del Esquema:</strong> 18 (Migraciones 01 → 18) · <strong>Fecha:</strong> 28 de agosto de 2026
+
+<hr/>
+
+<h2>Índice</h2>
+
+<ol><li><a href="#1-resumen-ejecutivo-de-la-arquitectura-de-datos">Resumen Ejecutivo de la Arquitectura de Datos</a></li><li><a href="#2-diagrama-entidad-relación-global-nivel-3---físico">Diagrama Entidad-Relación Global (Nivel 3 - Físico)</a></li><li><a href="#3-diagramas-por-dominios-funcionales">Diagramas por Dominios Funcionales</a><br/>- 3.1 <a href="#31-dominio-de-identidad-autenticación-y-rbac">Dominio de Identidad, Autenticación y RBAC</a><br/>- 3.2 <a href="#32-dominio-core-iniciativas-legislativas-y-expediente-documental">Dominio Core: Iniciativas Legislativas y Expediente Documental</a><br/>- 3.3 <a href="#33-dominio-de-máquina-de-estados-y-flujo-dinámico">Dominio de Máquina de Estados y Flujo Dinámico</a><br/>- 3.4 <a href="#34-dominio-de-auditoría-trazabilidad-y-control-del-esquema">Dominio de Auditoría, Trazabilidad y Control del Esquema</a></li><li><a href="#4-diccionario-exhaustivo-de-datos-15-tablas">Diccionario Exhaustivo de Datos (15 Tablas)</a><br/>- 4.1 <a href="#41-tabla-direcciones">Tabla: <code>direcciones</code></a><br/>- 4.2 <a href="#42-tabla-iniciativas">Tabla: <code>iniciativas</code></a><br/>- 4.3 <a href="#43-tabla-documentos">Tabla: <code>documentos</code></a><br/>- 4.4 <a href="#44-tabla-estados">Tabla: <code>estados</code></a><br/>- 4.5 <a href="#45-tabla-transiciones">Tabla: <code>transiciones</code></a><br/>- 4.6 <a href="#46-tabla-estado_responsables">Tabla: <code>estado_responsables</code></a><br/>- 4.7 <a href="#47-tabla-estado_visibilidad">Tabla: <code>estado_visibilidad</code></a><br/>- 4.8 <a href="#48-tabla-historial_iniciativa">Tabla: <code>historial_iniciativa</code></a><br/>- 4.9 <a href="#49-tabla-usuarios">Tabla: <code>usuarios</code></a><br/>- 4.10 <a href="#410-tabla-roles">Tabla: <code>roles</code></a><br/>- 4.11 <a href="#411-tabla-permisos">Tabla: <code>permisos</code></a><br/>- 4.12 <a href="#412-tabla-rol_permisos">Tabla: <code>rol_permisos</code></a><br/>- 4.13 <a href="#413-tabla-sesiones">Tabla: <code>sesiones</code></a><br/>- 4.14 <a href="#414-tabla-configuracion_historial">Tabla: <code>configuracion_historial</code></a><br/>- 4.15 <a href="#415-tabla-schema_version">Tabla: <code>schema_version</code></a></li><li><a href="#5-matriz-de-integridad-referencial-y-cardinalidades">Matriz de Integridad Referencial y Cardinalidades</a></li><li><a href="#6-catálogo-de-procedimientos-almacenados-y-funciones">Catálogo de Procedimientos Almacenados y Funciones</a></li><li><a href="#7-políticas-de-seguridad-transaccionalidad-y-concurrencia">Políticas de Seguridad, Transaccionalidad y Concurrencia</a></li></ol>
+<hr/>
+
+<h2>1. Resumen Ejecutivo de la Arquitectura de Datos</h2>
+
+<p>El diseño de base de datos del <strong>Sistema de Seguimiento de Iniciativas Legislativas</strong> implementa un modelo relacional normalizado (3NF) gobernado por una capa estricta de <strong>procedimientos almacenados (<code>Stored Procedures</code>)</strong>.</p>
+
+<h3>Principales directrices de ingeniería:</h3>
+
+<ol><li><strong>Encapsulamiento y Seguridad por Construcción:</strong>  <br/>La API no emite sentencias SQL directas (<code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>) ni ejecuta interpolación de cadenas. Todas las transacciones se despachan mediante invocaciones parametrizadas <code>CALL sp_nombre(?, ?)</code>, eliminando de raíz vulnerabilidades de inyección SQL.</li><li><strong>Control de Acceso Basado en Permisos Granulares (RBAC Dinámico):</strong>  <br/>Los roles agrupan permisos del catálogo del sistema. La función booleana determinística <code>fn_tiene_permiso(usuario_id, clave_permiso)</code> resuelve los privilegios en tiempo de ejecución.</li><li><strong>Máquina de Estados Finita (FSM) Configurable:</strong>  <br/>El ciclo de vida de una iniciativa legislativa es desacoplado del código fuente y modelado dinámicamente en tablas (<code>estados</code>, <code>transiciones</code>, <code>estado_responsables</code>, <code>estado_visibilidad</code>).</li><li><strong>Trazabilidad y No Repudio (Auditoría Integral):</strong>  <br/>Todo cambio de estado, corrección de alcance o edición de campos queda asentado en <code>historial_iniciativa</code> con marca de tiempo, usuario actor, estado anterior, estado nuevo y justificación motivada obligatoria.</li><li><strong>Idempotencia y Versionado del Esquema:</strong>  <br/>La tabla <code>schema_version</code> asegura la trazabilidad de las 18 migraciones ejecutadas por el servicio <code>migrador</code>.</li></ol>
+<hr/>
+
+<h2>2. Diagrama Entidad-Relación Global (Nivel 3 - Físico)</h2>
+
+<p>A continuación se presenta el modelo físico completo con tipado estricto, claves primarias (<code>PK</code>), claves foráneas (<code>FK</code>), índices únicos (<code>UK</code>) e índices de búsqueda (<code>IX</code>).</p>
+
+<div class="mermaid-wrap"><pre class="mermaid">erDiagram
+<p>direcciones ||--o{ iniciativas : "fk_iniciativas_direccion (ON DELETE CASCADE ON UPDATE CASCADE)"</p>
+<p>direcciones ||--o{ usuarios : "fk_usuarios_direccion (ON DELETE SET NULL ON UPDATE CASCADE)"</p>
+
+<p>iniciativas ||--o{ documentos : "fk_documentos_iniciativa (ON DELETE CASCADE ON UPDATE CASCADE)"</p>
+<p>iniciativas ||--o{ historial_iniciativa : "fk_hi_iniciativa (ON DELETE CASCADE)"</p>
+<p>estados ||--o{ iniciativas : "asocia estado_id (Lógico)"</p>
+
+<p>estados ||--o{ transiciones : "fk_tr_origen (ON DELETE CASCADE)"</p>
+<p>estados ||--o{ transiciones : "fk_tr_destino (ON DELETE CASCADE)"</p>
+<p>estados ||--o{ estado_responsables : "fk_er_estado (ON DELETE CASCADE)"</p>
+<p>estados ||--|| estado_visibilidad : "fk_ev_estado (ON DELETE CASCADE)"</p>
+
+<p>usuarios ||--o{ estado_responsables : "fk_er_usuario (ON DELETE CASCADE)"</p>
+<p>roles ||--o{ usuarios : "asocia rol_id (Lógico / Index)"</p>
+
+<p>roles ||--o{ rol_permisos : "fk_rp_rol (ON DELETE CASCADE)"</p>
+<p>permisos ||--o{ rol_permisos : "fk_rp_permiso (ON DELETE CASCADE)"</p>
+
+<p>usuarios ||--o{ historial_iniciativa : "asocia usuario_id (Auditoría)"</p>
+<p>usuarios ||--o{ configuracion_historial : "asocia usuario_id (Auditoría)"</p>
+
+<p>direcciones {</p>
+<p>varchar_30 id PK "Identificador alfanumérico único (slug)"</p>
+<p>varchar_255 nombre "Nombre oficial de la dependencia"</p>
+<p>varchar_100 nombre_corto "Nombre abreviado institucional"</p>
+<p>text descripcion "Alcance y funciones de la dirección"</p>
+<p>int orden "Secuencia de despliegue en interfaces"</p>
+<p>tinyint_1 activo "Bandera de disponibilidad lógica"</p>
+<p>timestamp creado_en "Timestamp de inserción del registro"</p>
+<p>}</p>
+
+<p>iniciativas {</p>
+<p>int id PK "Identificador numérico autoincremental"</p>
+<p>varchar_30 direccion_id FK "Dependencia encargada del trámite"</p>
+<p>varchar_500 nombre "Título oficial de la iniciativa legislativa"</p>
+<p>text objeto "Objeto, alcance y justificación jurídica"</p>
+<p>varchar_150 numero_proyecto "Radicado oficial de Congreso (PL/PR)"</p>
+<p>enum estado "Estado legacy para retrocompatibilidad"</p>
+<p>int estado_id FK "Clave foránea al estado del flujo FSM"</p>
+<p>enum prioridad "Alta | Media | Baja"</p>
+<p>date fecha_actualizacion "Última fecha de gestión formal"</p>
+<p>tinyint_1 fuente_publica "Bandera de trámite de notoriedad pública"</p>
+<p>tinyint_1 activo "Bandera de borrado lógico (1=Activo, 0=Inactivo)"</p>
+<p>timestamp creado_en "Fecha y hora de radicación / creación"</p>
+<p>timestamp actualizado_en "Fecha y hora de última modificación"</p>
+<p>enum origen "interna | propuesta"</p>
+<p>int propuesta_por FK "ID de usuario ciudadano creador (opcional)"</p>
+<p>varchar_255 propuesta_nombre "Nombre proponente ciudadano"</p>
+<p>varchar_255 propuesta_correo "Correo proponente ciudadano"</p>
+<p>datetime propuesta_en "Fecha/hora de propuesta externa"</p>
+<p>}</p>
+
+<p>documentos {</p>
+<p>int id PK "Identificador único de documento"</p>
+<p>int iniciativa_id FK "Iniciativa a la que pertenece el anexo"</p>
+<p>varchar_500 nombre "Descripción o nombre del archivo"</p>
+<p>varchar_1000 enlace "URL o ruta física de almacenamiento"</p>
+<p>date fecha "Fecha formal de expedición del documento"</p>
+<p>timestamp creado_en "Timestamp de carga al expediente"</p>
+<p>}</p>
+
+<p>estados {</p>
+<p>int id PK "Identificador único del estado"</p>
+<p>varchar_40 clave UK "Clave mnemotécnica única (slug)"</p>
+<p>varchar_80 nombre "Etiqueta visible para el usuario"</p>
+<p>varchar_300 descripcion "Guía técnica u objetivo del estado"</p>
+<p>varchar_20 color "Token cromático UI (azul, morado, verde...)"</p>
+<p>int orden "Posición en la cadena secuencial"</p>
+<p>tinyint_1 es_inicial "Flag de estado de radicación inicial"</p>
+<p>tinyint_1 es_final "Flag de estado terminal (aprobado/archivado)"</p>
+<p>tinyint_1 activo "Flag de estado vigente en la plataforma"</p>
+<p>}</p>
+
+<p>transiciones {</p>
+<p>int id PK "Identificador único de la transición"</p>
+<p>int estado_origen FK "Estado previo requerido"</p>
+<p>int estado_destino FK "Estado objetivo alcanzable"</p>
+<p>enum tipo "avanzar | devolver | rechazar | cerrar"</p>
+<p>varchar_80 etiqueta "Texto del botón de acción (UI)"</p>
+<p>tinyint_1 requiere_motivo "Obligatoriedad de justificación textual"</p>
+<p>tinyint_1 activo "Transición habilitada"</p>
+<p>}</p>
+
+<p>estado_responsables {</p>
+<p>int estado_id PK,FK "Estado del flujo asignado"</p>
+<p>int usuario_id PK,FK "Funcionario autorizado para operar"</p>
+<p>tinyint_1 puede_avanzar "Permiso para ejecutar transiciones hacia adelante"</p>
+<p>tinyint_1 puede_devolver "Permiso para devolver a estados previos"</p>
+<p>tinyint_1 puede_rechazar "Permiso para archivar/rechazar"</p>
+<p>tinyint_1 puede_cerrar "Permiso para cierre administrativo"</p>
+<p>tinyint_1 puede_acotar "Permiso para modificar alcance en el estado"</p>
+<p>}</p>
+
+<p>estado_visibilidad {</p>
+<p>int estado_id PK,FK "Estado regulado por la directriz"</p>
+<p>enum alcance "publico | autenticado | direccion | responsables"</p>
+<p>}</p>
+
+<p>historial_iniciativa {</p>
+<p>bigint id PK "Identificador único del evento"</p>
+<p>int iniciativa_id FK "Iniciativa afectada por la operación"</p>
+<p>int usuario_id "Usuario autor del cambio"</p>
+<p>enum tipo "avanzar | devolver | rechazar | cerrar | acotar | creacion | edicion"</p>
+<p>varchar_40 campo "Columna afectada en eventos de tipo edición"</p>
+<p>int estado_anterior "Estado previo en la transición"</p>
+<p>int estado_nuevo "Nuevo estado asignado"</p>
+<p>text motivo "Justificación obligatoria del movimiento"</p>
+<p>text valor_anterior "Valor preexistente en modificaciones"</p>
+<p>text valor_nuevo "Valor actualizado en modificaciones"</p>
+<p>timestamp creado_en "Fecha y hora exacta del suceso"</p>
+<p>}</p>
+
+<p>usuarios {</p>
+<p>int id PK "Identificador único de cuenta"</p>
+<p>varchar_255 nombre "Nombre completo y apellidos"</p>
+<p>varchar_255 correo UK "Correo electrónico institucional o personal"</p>
+<p>varchar_255 contrasena_hash "Hash criptográfico bcrypt / scrypt"</p>
+<p>tinyint_1 debe_cambiar "Requiere cambio de contraseña en login"</p>
+<p>int intentos_fallidos "Contador de autenticaciones fallidas"</p>
+<p>datetime bloqueado_hasta "Bloqueo temporal por fuerza bruta"</p>
+<p>datetime ultimo_ingreso "Registro de última sesión establecida"</p>
+<p>varchar_30 direccion_id FK "Dirección de adscripción institucional"</p>
+<p>enum rol "Rol legacy (viceministro, director, editor, lector)"</p>
+<p>int rol_id "Rol dinámico asignado del catálogo RBAC"</p>
+<p>tinyint_1 pendiente_aprobacion "Cuenta en cola de validación manual"</p>
+<p>datetime registrado_en "Fecha de registro por autoservicio"</p>
+<p>tinyint_1 activo "Estado de la cuenta (1=Habilitada, 0=Deshabilitada)"</p>
+<p>timestamp creado_en "Fecha de creación del registro"</p>
+<p>}</p>
+
+<p>roles {</p>
+<p>int id PK "Identificador único del rol"</p>
+<p>varchar_40 clave UK "Identificador mnemotécnico único"</p>
+<p>varchar_120 nombre "Nombre descriptivo del rol"</p>
+<p>varchar_255 descripcion "Alcance y perfil funcional"</p>
+<p>tinyint_1 es_sistema "Protección contra borrado (1=Inmutable)"</p>
+<p>tinyint_1 activo "Disponibilidad del rol"</p>
+<p>timestamp creado_en "Fecha de creación"</p>
+<p>}</p>
+
+<p>permisos {</p>
+<p>int id PK "Identificador único del permiso"</p>
+<p>varchar_60 clave UK "Clave técnica evaluada por la API"</p>
+<p>varchar_120 nombre "Nombre formal del permiso"</p>
+<p>varchar_255 descripcion "Acción específica que autoriza"</p>
+<p>varchar_40 grupo "Módulo funcional de pertenencia"</p>
+<p>int orden "Orden de despliegue en matriz"</p>
+<p>}</p>
+
+<p>rol_permisos {</p>
+<p>int rol_id PK,FK "Rol al que se asocia la capacidad"</p>
+<p>int permiso_id PK,FK "Permiso concedido al rol"</p>
+<p>}</p>
+
+<p>sesiones {</p>
+<p>varchar_128 session_id PK "Token de sesión en cookie segura"</p>
+<p>int_unsigned expires "Timestamp UNIX de expiración"</p>
+<p>mediumtext data "Payload serializado de express-session"</p>
+<p>}</p>
+
+<p>configuracion_historial {</p>
+<p>bigint id PK "Registro de auditoría administrativa"</p>
+<p>int usuario_id "Administrador que ejecutó la operación"</p>
+<p>varchar_40 entidad "Objeto configurado (roles, estados...)"</p>
+<p>varchar_40 accion "Tipo de operación (crear, editar...)"</p>
+<p>text detalle "Carga JSON o descripción del cambio"</p>
+<p>timestamp creado_en "Fecha y hora del cambio de configuración"</p>
+<p>}</p>
+
+<p>schema_version {</p>
+<p>int version PK "Número correlativo de la migración aplicada"</p>
+<p>varchar_255 descripcion "Descripción del parche estructural"</p>
+<p>timestamp aplicada_en "Fecha y hora de ejecución por el migrador"</p>
+<p>}</pre></div></p>
+
+<hr/>
+
+<h2>3. Diagramas por Dominios Funcionales</h2>
+
+<h3>3.1. Dominio de Identidad, Autenticación y RBAC</h3>
+
+<p>Controla la identidad de los usuarios, políticas de contraseñas provisionales, bloqueos por intentos fallidos, persistencia distribuida de sesiones y el árbol de privilegios por permisos atómicos.</p>
+
+<div class="mermaid-wrap"><pre class="mermaid">erDiagram
+<p>usuarios ||--o{ rol_permisos : "evaluado mediante rol_id"</p>
+<p>roles ||--o{ usuarios : "asigna perfil"</p>
+<p>roles ||--o{ rol_permisos : "agrupa"</p>
+<p>permisos ||--o{ rol_permisos : "contiene"</p>
+<p>usuarios ||--o{ sesiones : "mantiene sesion_id"</p>
+
+<p>usuarios {</p>
+<p>int id PK</p>
+<p>varchar_255 nombre</p>
+<p>varchar_255 correo UK</p>
+<p>varchar_255 contrasena_hash</p>
+<p>tinyint_1 debe_cambiar</p>
+<p>int intentos_fallidos</p>
+<p>datetime bloqueado_hasta</p>
+<p>int rol_id FK</p>
+<p>tinyint_1 pendiente_aprobacion</p>
+<p>tinyint_1 activo</p>
+<p>}</p>
+
+<p>roles {</p>
+<p>int id PK</p>
+<p>varchar_40 clave UK</p>
+<p>varchar_120 nombre</p>
+<p>tinyint_1 es_sistema</p>
+<p>tinyint_1 activo</p>
+<p>}</p>
+
+<p>permisos {</p>
+<p>int id PK</p>
+<p>varchar_60 clave UK</p>
+<p>varchar_120 nombre</p>
+<p>varchar_40 grupo</p>
+<p>}</p>
+
+<p>rol_permisos {</p>
+<p>int rol_id PK,FK</p>
+<p>int permiso_id PK,FK</p>
+<p>}</p>
+
+<p>sesiones {</p>
+<p>varchar_128 session_id PK</p>
+<p>int_unsigned expires</p>
+<p>mediumtext data</p>
+<p>}</pre></div></p>
+
+<hr/>
+
+<h3>3.2. Dominio Core: Iniciativas Legislativas y Expediente Documental</h3>
+
+<p>Almacena el inventario de iniciativas parlamentarias y propuestas ciudadanas, asociadas a su dirección rectora y su expediente de anexos oficiales.</p>
+
+<div class="mermaid-wrap"><pre class="mermaid">erDiagram
+<p>direcciones ||--o{ iniciativas : "gestiona"</p>
+<p>iniciativas ||--o{ documentos : "soporta"</p>
+
+<p>direcciones {</p>
+<p>varchar_30 id PK</p>
+<p>varchar_255 nombre</p>
+<p>varchar_100 nombre_corto</p>
+<p>int orden</p>
+<p>tinyint_1 activo</p>
+<p>}</p>
+
+<p>iniciativas {</p>
+<p>int id PK</p>
+<p>varchar_30 direccion_id FK</p>
+<p>varchar_500 nombre</p>
+<p>text objeto</p>
+<p>varchar_150 numero_proyecto</p>
+<p>int estado_id FK</p>
+<p>enum prioridad</p>
+<p>tinyint_1 fuente_publica</p>
+<p>enum origen</p>
+<p>varchar_255 propuesta_nombre</p>
+<p>varchar_255 propuesta_correo</p>
+<p>tinyint_1 activo</p>
+<p>}</p>
+
+<p>documentos {</p>
+<p>int id PK</p>
+<p>int iniciativa_id FK</p>
+<p>varchar_500 nombre</p>
+<p>varchar_1000 enlace</p>
+<p>date fecha</p>
+<p>}</pre></div></p>
+
+<hr/>
+
+<h3>3.3. Dominio de Máquina de Estados y Flujo Dinámico</h3>
+
+<p>Define la topología del flujo legislativo (nodos <code>estados</code>, aristas dirigidas <code>transiciones</code>), los oficiales responsables por estación de trabajo (<code>estado_responsables</code>) y las reglas de aislamiento por visibilidad (<code>estado_visibilidad</code>).</p>
+
+<div class="mermaid-wrap"><pre class="mermaid">erDiagram
+<p>estados ||--o{ transiciones : "origen"</p>
+<p>estados ||--o{ transiciones : "destino"</p>
+<p>estados ||--o{ estado_responsables : "asigna"</p>
+<p>estados ||--|| estado_visibilidad : "restringe"</p>
+<p>usuarios ||--o{ estado_responsables : "ejerce_rol"</p>
+
+<p>estados {</p>
+<p>int id PK</p>
+<p>varchar_40 clave UK</p>
+<p>varchar_80 nombre</p>
+<p>varchar_20 color</p>
+<p>int orden</p>
+<p>tinyint_1 es_inicial</p>
+<p>tinyint_1 es_final</p>
+<p>tinyint_1 activo</p>
+<p>}</p>
+
+<p>transiciones {</p>
+<p>int id PK</p>
+<p>int estado_origen FK</p>
+<p>int estado_destino FK</p>
+<p>enum tipo</p>
+<p>varchar_80 etiqueta</p>
+<p>tinyint_1 requiere_motivo</p>
+<p>tinyint_1 activo</p>
+<p>}</p>
+
+<p>estado_responsables {</p>
+<p>int estado_id PK,FK</p>
+<p>int usuario_id PK,FK</p>
+<p>tinyint_1 puede_avanzar</p>
+<p>tinyint_1 puede_devolver</p>
+<p>tinyint_1 puede_rechazar</p>
+<p>tinyint_1 puede_cerrar</p>
+<p>tinyint_1 puede_acotar</p>
+<p>}</p>
+
+<p>estado_visibilidad {</p>
+<p>int estado_id PK,FK</p>
+<p>enum alcance</p>
+<p>}</pre></div></p>
+
+<hr/>
+
+<h3>3.4. Dominio de Auditoría, Trazabilidad y Control del Esquema</h3>
+
+<p>Garantiza el no repudio de todas las operaciones sobre iniciativas, cambios de configuración por administradores y la verificación de versiones de base de datos.</p>
+
+<div class="mermaid-wrap"><pre class="mermaid">erDiagram
+<p>iniciativas ||--o{ historial_iniciativa : "audita"</p>
+<p>usuarios ||--o{ historial_iniciativa : "ejecuta"</p>
+<p>usuarios ||--o{ configuracion_historial : "modifica_sistema"</p>
+
+<p>historial_iniciativa {</p>
+<p>bigint id PK</p>
+<p>int iniciativa_id FK</p>
+<p>int usuario_id</p>
+<p>enum tipo</p>
+<p>varchar_40 campo</p>
+<p>int estado_anterior</p>
+<p>int estado_nuevo</p>
+<p>text motivo</p>
+<p>text valor_anterior</p>
+<p>text valor_nuevo</p>
+<p>timestamp creado_en</p>
+<p>}</p>
+
+<p>configuracion_historial {</p>
+<p>bigint id PK</p>
+<p>int usuario_id</p>
+<p>varchar_40 entidad</p>
+<p>varchar_40 accion</p>
+<p>text detalle</p>
+<p>timestamp creado_en</p>
+<p>}</p>
+
+<p>schema_version {</p>
+<p>int version PK</p>
+<p>varchar_255 descripcion</p>
+<p>timestamp aplicada_en</p>
+<p>}</pre></div></p>
+
+<hr/>
+
+<h2>4. Diccionario Exhaustivo de Datos (15 Tablas)</h2>
+
+<h3>4.1. Tabla: <code>direcciones</code></h3>
+<em>Catálogo de dependencias misionales y direcciones adscritas al Viceministerio.</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria:</strong> <code>id</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>VARCHAR(30)</code></td><td>NO</td><td>Ninguno</td><td><strong>PK</strong></td><td>Identificador unívoco tipo slug (ej: <code>dialogo_social</code>, <code>consulta_previa</code>, <code>derechos_humanos</code>).</td></tr><tr><td><code>nombre</code></td><td><code>VARCHAR(255)</code></td><td>NO</td><td>Ninguno</td><td>Nombre oficial y formal de la dirección o dependencia.</td></tr><tr><td><code>nombre_corto</code></td><td><code>VARCHAR(100)</code></td><td>NO</td><td>Ninguno</td><td>Nombre sintético para visualización en botones y filtros responsivos de la interfaz.</td></tr><tr><td><code>descripcion</code></td><td><code>TEXT</code></td><td>SÍ</td><td><code>NULL</code></td><td>Descripción de la competencia institucional y marco jurídico de la dirección.</td></tr><tr><td><code>orden</code></td><td><code>INT</code></td><td>NO</td><td><code>0</code></td><td>Secuencia numérica de ordenamiento en el menú y pestañas del tablero.</td></tr><tr><td><code>activo</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>1</code></td><td>Indicador de disponibilidad lógica (1 = Visible en filtros, 0 = Oculta sin borrar históricos).</td></tr><tr><td><code>creado_en</code></td><td><code>TIMESTAMP</code></td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td>Fecha y hora de alta del registro.</td></tr></tbody></table>
+<hr/>
+
+<h3>4.2. Tabla: <code>iniciativas</code></h3>
+<em>Entidad central del sistema. Almacena las iniciativas de ley, proyectos normativos y propuestas ciudadanas.</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria:</strong> <code>id</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>INT</code></td><td>NO</td><td><em>AUTO_INCREMENT</em></td><td><strong>PK</strong></td><td>Identificador autonumérico único de la iniciativa.</td></tr><tr><td><code>direccion_id</code></td><td><code>VARCHAR(30)</code></td><td>NO</td><td>Ninguno</td><td><strong>FK</strong></td><td>Llave foránea hacia <code>direcciones(id)</code>. Dependencia titular del proyecto.</td></tr><tr><td><code>nombre</code></td><td><code>VARCHAR(500)</code></td><td>NO</td><td>Ninguno</td><td>Título oficial del proyecto de ley o iniciativa normativa.</td></tr><tr><td><code>objeto</code></td><td><code>TEXT</code></td><td>SÍ</td><td><code>NULL</code></td><td>Objeto, justificación de motivos y alcance normativo de la iniciativa.</td></tr><tr><td><code>numero_proyecto</code></td><td><code>VARCHAR(150)</code></td><td>SÍ</td><td><code>NULL</code></td><td>Número de radicación asignado por el Congreso (ej: <code>PL-2026-013</code>).</td></tr><tr><td><code>estado</code></td><td><code>ENUM(...)</code></td><td>NO</td><td><code>'En formulación'</code></td><td><strong>IX</strong></td><td>Columna legacy con los estados base para compatibilidad hacia atrás.</td></tr><tr><td><code>estado_id</code></td><td><code>INT</code></td><td>SÍ</td><td><code>NULL</code></td><td><strong>IX, FK</strong></td><td>Clave foránea lógica hacia <code>estados(id)</code> para el flujo dinámico de estados.</td></tr><tr><td><code>prioridad</code></td><td><code>ENUM('Alta','Media','Baja')</code></td><td>NO</td><td><code>'Media'</code></td><td><strong>IX</strong></td><td>Clasificación de urgencia y relevancia política.</td></tr><tr><td><code>fecha_actualizacion</code></td><td><code>DATE</code></td><td>SÍ</td><td><code>NULL</code></td><td>Fecha de la última novedad formal asentada.</td></tr><tr><td><code>fuente_publica</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>0</code></td><td>Indicador de si el contenido es de conocimiento público abierto (1) o restringido (0).</td></tr><tr><td><code>activo</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>1</code></td><td>Eliminación lógica (1 = Vigente, 0 = Papelera/Eliminado).</td></tr><tr><td><code>creado_en</code></td><td><code>TIMESTAMP</code></td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td>Timestamp de radicación o registro en el sistema.</td></tr><tr><td><code>actualizado_en</code></td><td><code>TIMESTAMP</code></td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td>Timestamp automático de actualización (<code>ON UPDATE CURRENT_TIMESTAMP</code>).</td></tr><tr><td><code>origen</code></td><td><code>ENUM('interna','propuesta')</code></td><td>NO</td><td><code>'interna'</code></td><td>Procedencia del trámite: interna institucional o iniciativa ciudadana.</td></tr><tr><td><code>propuesta_por</code></td><td><code>INT</code></td><td>SÍ</td><td><code>NULL</code></td><td><strong>IX</strong></td><td>ID de usuario autor en caso de haber sido adoptada por la plataforma.</td></tr><tr><td><code>propuesta_nombre</code></td><td><code>VARCHAR(255)</code></td><td>SÍ</td><td><code>NULL</code></td><td>Nombre de la persona o colectivo proponente (protegido por permiso especial).</td></tr><tr><td><code>propuesta_correo</code></td><td><code>VARCHAR(255)</code></td><td>SÍ</td><td><code>NULL</code></td><td><strong>IX</strong></td><td>Correo electrónico de contacto del proponente.</td></tr><tr><td><code>propuesta_en</code></td><td><code>DATETIME</code></td><td>SÍ</td><td><code>NULL</code></td><td>Fecha exacta de envío de la propuesta original.</td></tr></tbody></table>
+<ul><li><strong>Restricciones de Integridad:</strong>  <br/><code>CONSTRAINT fk_iniciativas_direccion FOREIGN KEY (direccion_id) REFERENCES direcciones (id) ON DELETE CASCADE ON UPDATE CASCADE</code></li><li><strong>Índices de Rendimiento:</strong><br/>- <code>idx_direccion (direccion_id)</code><br/>- <code>idx_estado (estado)</code><br/>- <code>idx_prioridad (prioridad)</code><br/>- <code>idx_propuesta_por (propuesta_por)</code><br/>- <code>idx_propuesta_correo (propuesta_correo)</code><br/>- <code>idx_ini_estado (estado_id)</code></li></ul>
+<hr/>
+
+<h3>4.3. Tabla: <code>documentos</code></h3>
+<em>Expediente documental digital asociado a cada iniciativa legislativa.</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria:</strong> <code>id</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>INT</code></td><td>NO</td><td><em>AUTO_INCREMENT</em></td><td><strong>PK</strong></td><td>Identificador correlativo del documento.</td></tr><tr><td><code>iniciativa_id</code></td><td><code>INT</code></td><td>NO</td><td>Ninguno</td><td><strong>FK, IX</strong></td><td>Iniciativa a la cual se anexa el archivo.</td></tr><tr><td><code>nombre</code></td><td><code>VARCHAR(500)</code></td><td>NO</td><td>Ninguno</td><td>Título descriptivo o rótulo del documento (ej: "Texto definitivo aprobado").</td></tr><tr><td><code>enlace</code></td><td><code>VARCHAR(1000)</code></td><td>SÍ</td><td><code>NULL</code></td><td>Enlace URL seguro (<code>https://</code>) o path relativo al repositorio de almacenamiento.</td></tr><tr><td><code>fecha</code></td><td><code>DATE</code></td><td>SÍ</td><td><code>NULL</code></td><td>Fecha de expedición formal del documento técnico/jurídico.</td></tr><tr><td><code>creado_en</code></td><td><code>TIMESTAMP</code></td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td>Fecha y hora en que se asoció el registro al sistema.</td></tr></tbody></table>
+<ul><li><strong>Restricciones de Integridad:</strong>  <br/><code>CONSTRAINT fk_documentos_iniciativa FOREIGN KEY (iniciativa_id) REFERENCES iniciativas (id) ON DELETE CASCADE ON UPDATE CASCADE</code></li></ul>
+<hr/>
+
+<h3>4.4. Tabla: <code>estados</code></h3>
+<em>Catálogo maestro de estados que integran la Máquina de Estados Finita (FSM).</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria:</strong> <code>id</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>INT</code></td><td>NO</td><td><em>AUTO_INCREMENT</em></td><td><strong>PK</strong></td><td>Clave primaria autonumérica del estado.</td></tr><tr><td><code>clave</code></td><td><code>VARCHAR(40)</code></td><td>NO</td><td>Ninguno</td><td><strong>UK</strong></td><td>Slug único e inmutable del estado (ej: <code>en_formulacion</code>, <code>radicado</code>, <code>archivado</code>).</td></tr><tr><td><code>nombre</code></td><td><code>VARCHAR(80)</code></td><td>NO</td><td>Ninguno</td><td>Denominación pública y legible del estado.</td></tr><tr><td><code>descripcion</code></td><td><code>VARCHAR(300)</code></td><td>SÍ</td><td><code>NULL</code></td><td>Instrucciones y lineamientos para los funcionarios asignados al estado.</td></tr><tr><td><code>color</code></td><td><code>VARCHAR(20)</code></td><td>NO</td><td><code>'azul'</code></td><td>Identificador de diseño CSS (<code>azul</code>, <code>morado</code>, <code>ambar</code>, <code>verde</code>, <code>rojo</code>, <code>gris</code>).</td></tr><tr><td><code>orden</code></td><td><code>INT</code></td><td>NO</td><td><code>0</code></td><td>Orden secuencial dentro de la visualización del riel de avance.</td></tr><tr><td><code>es_inicial</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>0</code></td><td>1 = Estado predeterminado al crear o radicar una iniciativa.</td></tr><tr><td><code>es_final</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>0</code></td><td>1 = Estado de cierre de ciclo de vida (no admite transiciones salientes).</td></tr><tr><td><code>activo</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>1</code></td><td>Estado habilitado para el flujo operativo.</td></tr></tbody></table>
+<hr/>
+
+<h3>4.5. Tabla: <code>transiciones</code></h3>
+<em>Matriz de adyacencia dirigida que determina los movimientos válidos entre estados.</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria:</strong> <code>id</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>INT</code></td><td>NO</td><td><em>AUTO_INCREMENT</em></td><td><strong>PK</strong></td><td>Identificador unívoco del enlace de transición.</td></tr><tr><td><code>estado_origen</code></td><td><code>INT</code></td><td>NO</td><td>Ninguno</td><td><strong>FK, UK</strong></td><td>Clave foránea hacia <code>estados(id)</code> de partida.</td></tr><tr><td><code>estado_destino</code></td><td><code>INT</code></td><td>NO</td><td>Ninguno</td><td><strong>FK, UK</strong></td><td>Clave foránea hacia <code>estados(id)</code> de llegada.</td></tr><tr><td><code>tipo</code></td><td><code>ENUM('avanzar','devolver','rechazar','cerrar')</code></td><td>NO</td><td>Ninguno</td><td><strong>UK</strong></td><td>Clasificación funcional y cromática de la acción.</td></tr><tr><td><code>etiqueta</code></td><td><code>VARCHAR(80)</code></td><td>NO</td><td>Ninguno</td><td>Rótulo visible en el botón de interfaz (ej: "Enviar a Comisión").</td></tr><tr><td><code>requiere_motivo</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>0</code></td><td>1 = Exige justificación textual obligatoria antes de confirmar el movimiento.</td></tr><tr><td><code>activo</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>1</code></td><td>Habilita o suspende la transición temporalmente.</td></tr></tbody></table>
+<ul><li><strong>Restricciones de Integridad y Unicidad:</strong><br/>- <code>UNIQUE KEY uq_transicion (estado_origen, estado_destino, tipo)</code><br/>- <code>CONSTRAINT fk_tr_origen FOREIGN KEY (estado_origen) REFERENCES estados (id) ON DELETE CASCADE</code><br/>- <code>CONSTRAINT fk_tr_destino FOREIGN KEY (estado_destino) REFERENCES estados (id) ON DELETE CASCADE</code></li></ul>
+<hr/>
+
+<h3>4.6. Tabla: <code>estado_responsables</code></h3>
+<em>Tabla asociativa para delegar la custodia y capacidad operativa de cada estado a usuarios específicos.</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria Compuesta:</strong> <code>(estado_id, usuario_id)</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>estado_id</code></td><td><code>INT</code></td><td>NO</td><td>Ninguno</td><td><strong>PK, FK</strong></td><td>Estado sobre el cual se confieren facultades operativas.</td></tr><tr><td><code>usuario_id</code></td><td><code>INT</code></td><td>NO</td><td>Ninguno</td><td><strong>PK, FK</strong></td><td>Funcionario responsable acreditado.</td></tr><tr><td><code>puede_avanzar</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>1</code></td><td>Autorización para despachar transiciones de tipo <code>avanzar</code>.</td></tr><tr><td><code>puede_devolver</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>1</code></td><td>Autorización para devolver el trámite a la estación previa.</td></tr><tr><td><code>puede_rechazar</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>0</code></td><td>Autorización para rechazar y remitir a estado terminal de archivo.</td></tr><tr><td><code>puede_cerrar</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>0</code></td><td>Autorización para cierre final del expediente.</td></tr><tr><td><code>puede_acotar</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>0</code></td><td>Autorización para corregir objeto y alcance mientras la iniciativa esté en el estado.</td></tr></tbody></table>
+<ul><li><strong>Restricciones de Integridad:</strong><br/>- <code>CONSTRAINT fk_er_estado FOREIGN KEY (estado_id) REFERENCES estados (id) ON DELETE CASCADE</code><br/>- <code>CONSTRAINT fk_er_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE</code></li></ul>
+<hr/>
+
+<h3>4.7. Tabla: <code>estado_visibilidad</code></h3>
+<em>Configuración de políticas de aislamiento de datos y confidencialidad por estado del trámite.</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria:</strong> <code>estado_id</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>estado_id</code></td><td><code>INT</code></td><td>NO</td><td>Ninguno</td><td><strong>PK, FK</strong></td><td>Estado al que aplica la regla de visibilidad.</td></tr><tr><td><code>alcance</code></td><td><code>ENUM('publico','autenticado','direccion','responsables')</code></td><td>NO</td><td><code>'autenticado'</code></td><td>Segmentación del público con permiso de lectura sobre las iniciativas del estado.</td></tr></tbody></table>
+<ul><li><strong>Restricciones de Integridad:</strong>  <br/><code>CONSTRAINT fk_ev_estado FOREIGN KEY (estado_id) REFERENCES estados (id) ON DELETE CASCADE</code></li></ul>
+<hr/>
+
+<h3>4.8. Tabla: <code>historial_iniciativa</code></h3>
+<em>Libro de bitácora transaccional inmutable. Registra cada transición de estado y modificación estructural.</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria:</strong> <code>id</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>BIGINT</code></td><td>NO</td><td><em>AUTO_INCREMENT</em></td><td><strong>PK</strong></td><td>Secuencial autonumérico de alta capacidad (64 bits).</td></tr><tr><td><code>iniciativa_id</code></td><td><code>INT</code></td><td>NO</td><td>Ninguno</td><td><strong>FK, IX</strong></td><td>Iniciativa objeto de la mutación.</td></tr><tr><td><code>usuario_id</code></td><td><code>INT</code></td><td>SÍ</td><td><code>NULL</code></td><td>Identificador del usuario que ejecutó la acción (<code>NULL</code> para eventos del sistema).</td></tr><tr><td><code>tipo</code></td><td><code>ENUM('avanzar','devolver','rechazar','cerrar','acotar','creacion','edicion')</code></td><td>NO</td><td>Ninguno</td><td>Naturaleza del evento registrado en la bitácora.</td></tr><tr><td><code>campo</code></td><td><code>VARCHAR(40)</code></td><td>SÍ</td><td><code>NULL</code></td><td>Nombre del atributo modificado (exclusivo para eventos <code>tipo = 'edicion'</code>).</td></tr><tr><td><code>estado_anterior</code></td><td><code>INT</code></td><td>SÍ</td><td><code>NULL</code></td><td>ID del estado previo en transiciones de flujo.</td></tr><tr><td><code>estado_nuevo</code></td><td><code>INT</code></td><td>SÍ</td><td><code>NULL</code></td><td><strong>IX</strong></td><td>ID del estado resultante alcanzado.</td></tr><tr><td><code>motivo</code></td><td><code>TEXT</code></td><td>SÍ</td><td><code>NULL</code></td><td>Justificación formal ingresada por el usuario al realizar el cambio.</td></tr><tr><td><code>valor_anterior</code></td><td><code>TEXT</code></td><td>SÍ</td><td><code>NULL</code></td><td>Snapshot del contenido previo para auditoría y control de versiones.</td></tr><tr><td><code>valor_nuevo</code></td><td><code>TEXT</code></td><td>SÍ</td><td><code>NULL</code></td><td>Snapshot del contenido resultante tras la operación.</td></tr><tr><td><code>creado_en</code></td><td><code>TIMESTAMP</code></td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td><strong>IX</strong></td><td>Marca temporal UTC inmutable del suceso.</td></tr></tbody></table>
+<ul><li><strong>Restricciones de Integridad:</strong>  <br/><code>CONSTRAINT fk_hi_iniciativa FOREIGN KEY (iniciativa_id) REFERENCES iniciativas (id) ON DELETE CASCADE</code></li><li><strong>Índices de Optimización:</strong><br/>- <code>idx_hist_iniciativa (iniciativa_id, creado_en)</code><br/>- <code>idx_hist_estado (estado_nuevo, creado_en)</code></li></ul>
+<hr/>
+
+<h3>4.9. Tabla: <code>usuarios</code></h3>
+<em>Repositorio central de cuentas de usuario, credenciales criptográficas y estados de acceso.</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria:</strong> <code>id</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>INT</code></td><td>NO</td><td><em>AUTO_INCREMENT</em></td><td><strong>PK</strong></td><td>Identificador unívoco del usuario en la plataforma.</td></tr><tr><td><code>nombre</code></td><td><code>VARCHAR(255)</code></td><td>NO</td><td>Ninguno</td><td>Nombre completo y apellidos del funcionario o ciudadano.</td></tr><tr><td><code>correo</code></td><td><code>VARCHAR(255)</code></td><td>NO</td><td>Ninguno</td><td><strong>UK</strong></td><td>Cuenta de correo electrónico oficial / nombre de usuario único.</td></tr><tr><td><code>contrasena_hash</code></td><td><code>VARCHAR(255)</code></td><td>SÍ</td><td><code>NULL</code></td><td>Hash de contraseña con salt seguro (bcrypt).</td></tr><tr><td><code>debe_cambiar</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>1</code></td><td>1 = Contraseña provisional; bloquea operaciones de escritura hasta su cambio.</td></tr><tr><td><code>intentos_fallidos</code></td><td><code>INT</code></td><td>NO</td><td><code>0</code></td><td>Contador secuencial de autenticaciones fallidas consecutivas.</td></tr><tr><td><code>bloqueado_hasta</code></td><td><code>DATETIME</code></td><td>SÍ</td><td><code>NULL</code></td><td>Ventana de tiempo de bloqueo temporal tras exceder el umbral de intentos.</td></tr><tr><td><code>ultimo_ingreso</code></td><td><code>DATETIME</code></td><td>SÍ</td><td><code>NULL</code></td><td>Timestamp de la última autenticación exitosa registrada.</td></tr><tr><td><code>direccion_id</code></td><td><code>VARCHAR(30)</code></td><td>SÍ</td><td><code>NULL</code></td><td><strong>FK</strong></td><td>Dirección del Ministerio a la cual está adscrito el usuario.</td></tr><tr><td><code>rol</code></td><td><code>ENUM('viceministro','director','editor','lector')</code></td><td>NO</td><td><code>'lector'</code></td><td>Rol legacy para contingencias y retrocompatibilidad.</td></tr><tr><td><code>rol_id</code></td><td><code>INT</code></td><td>SÍ</td><td><code>NULL</code></td><td><strong>IX</strong></td><td>Referencia al rol RBAC dinámico en la tabla <code>roles(id)</code>.</td></tr><tr><td><code>pendiente_aprobacion</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>0</code></td><td>1 = Cuenta autorregistrada en espera de activación por un Administrador.</td></tr><tr><td><code>registrado_en</code></td><td><code>DATETIME</code></td><td>SÍ</td><td><code>NULL</code></td><td>Fecha y hora en que se completó el formulario de autorregistro.</td></tr><tr><td><code>activo</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>1</code></td><td>Estado operativo de la cuenta (1 = Activa, 0 = Inhabilitada).</td></tr><tr><td><code>creado_en</code></td><td><code>TIMESTAMP</code></td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td>Fecha de creación del registro.</td></tr></tbody></table>
+<ul><li><strong>Restricciones de Integridad y Unicidad:</strong><br/>- <code>UNIQUE KEY correo (correo)</code><br/>- <code>KEY idx_usuarios_rol (rol_id)</code><br/>- <code>CONSTRAINT fk_usuarios_direccion FOREIGN KEY (direccion_id) REFERENCES direcciones (id) ON DELETE SET NULL ON UPDATE CASCADE</code></li></ul>
+<hr/>
+
+<h3>4.10. Tabla: <code>roles</code></h3>
+<em>Perfiles de autorización dinámicos configurables desde la interfaz administrativa.</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria:</strong> <code>id</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>INT</code></td><td>NO</td><td><em>AUTO_INCREMENT</em></td><td><strong>PK</strong></td><td>Clave primaria autonumérica del rol.</td></tr><tr><td><code>clave</code></td><td><code>VARCHAR(40)</code></td><td>NO</td><td>Ninguno</td><td><strong>UK</strong></td><td>Slug identificador mnemotécnico (ej: <code>superadmin</code>, <code>director</code>, <code>editor</code>, <code>lector</code>).</td></tr><tr><td><code>nombre</code></td><td><code>VARCHAR(120)</code></td><td>NO</td><td>Ninguno</td><td>Nombre representativo del perfil funcional.</td></tr><tr><td><code>descripcion</code></td><td><code>VARCHAR(255)</code></td><td>SÍ</td><td><code>NULL</code></td><td>Explicación detallada de las competencias del rol.</td></tr><tr><td><code>es_sistema</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>0</code></td><td>1 = Rol protegido por la plataforma (inmutable, no se puede eliminar ni renombrar).</td></tr><tr><td><code>activo</code></td><td><code>TINYINT(1)</code></td><td>NO</td><td><code>1</code></td><td>Habilitación para asignación a usuarios nuevos.</td></tr><tr><td><code>creado_en</code></td><td><code>TIMESTAMP</code></td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td>Fecha de alta en el catálogo de roles.</td></tr></tbody></table>
+<hr/>
+
+<h3>4.11. Tabla: <code>permisos</code></h3>
+<em>Catálogo atómico de capacidades del sistema protegidas a nivel de código.</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria:</strong> <code>id</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>INT</code></td><td>NO</td><td><em>AUTO_INCREMENT</em></td><td><strong>PK</strong></td><td>Clave primaria autonumérica del permiso.</td></tr><tr><td><code>clave</code></td><td><code>VARCHAR(60)</code></td><td>NO</td><td>Ninguno</td><td><strong>UK</strong></td><td>Clave técnica con notación de punto evaluada por la API (ej: <code>iniciativas.ver_todas</code>).</td></tr><tr><td><code>nombre</code></td><td><code>VARCHAR(120)</code></td><td>NO</td><td>Ninguno</td><td>Nombre descriptivo y comprensible del permiso.</td></tr><tr><td><code>descripcion</code></td><td><code>VARCHAR(255)</code></td><td>SÍ</td><td><code>NULL</code></td><td>Explicación del alcance de la operación que permite ejecutar.</td></tr><tr><td><code>grupo</code></td><td><code>VARCHAR(40)</code></td><td>NO</td><td>Ninguno</td><td>Módulo funcional (<code>Iniciativas</code>, <code>Flujo</code>, <code>Documentos</code>, <code>Usuarios</code>, <code>Roles</code>, <code>Estadísticas</code>).</td></tr><tr><td><code>orden</code></td><td><code>INT</code></td><td>NO</td><td><code>0</code></td><td>Posición en la matriz visual de asignación de roles.</td></tr></tbody></table>
+<hr/>
+
+<h3>4.12. Tabla: <code>rol_permisos</code></h3>
+<em>Tabla de relación muchos a muchos (M:N) entre roles y permisos.</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria Compuesta:</strong> <code>(rol_id, permiso_id)</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>rol_id</code></td><td><code>INT</code></td><td>NO</td><td>Ninguno</td><td><strong>PK, FK</strong></td><td>Clave foránea a la tabla <code>roles(id)</code>.</td></tr><tr><td><code>permiso_id</code></td><td><code>INT</code></td><td>NO</td><td>Ninguno</td><td><strong>PK, FK</strong></td><td>Clave foránea a la tabla <code>permisos(id)</code>.</td></tr></tbody></table>
+<ul><li><strong>Restricciones de Integridad:</strong><br/>- <code>CONSTRAINT fk_rp_rol FOREIGN KEY (rol_id) REFERENCES roles (id) ON DELETE CASCADE</code><br/>- <code>CONSTRAINT fk_rp_permiso FOREIGN KEY (permiso_id) REFERENCES permisos (id) ON DELETE CASCADE</code></li></ul>
+<hr/>
+
+<h3>4.13. Tabla: <code>sesiones</code></h3>
+<em>Almacén persistente de sesiones HTTP compartidas entre los microservicios (<code>express-mysql-session</code>).</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria:</strong> <code>session_id</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>session_id</code></td><td><code>VARCHAR(128)</code></td><td>NO</td><td>Ninguno</td><td><strong>PK</strong></td><td>Token único de sesión transportado en la cookie HTTP firmada.</td></tr><tr><td><code>expires</code></td><td><code>INT UNSIGNED</code></td><td>NO</td><td>Ninguno</td><td>Timestamp UNIX (segundos) de caducidad de la sesión activa.</td></tr><tr><td><code>data</code></td><td><code>MEDIUMTEXT</code></td><td>SÍ</td><td><code>NULL</code></td><td>Carga útil serializada en JSON con <code>usuario_id</code>, datos de perfil y marcas de sesión.</td></tr></tbody></table>
+<hr/>
+
+<h3>4.14. Tabla: <code>configuracion_historial</code></h3>
+<em>Registro de auditoría sobre modificaciones en la parametrización del sistema.</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria:</strong> <code>id</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>BIGINT</code></td><td>NO</td><td><em>AUTO_INCREMENT</em></td><td><strong>PK</strong></td><td>Secuencial único de registro administrativo.</td></tr><tr><td><code>usuario_id</code></td><td><code>INT</code></td><td>SÍ</td><td><code>NULL</code></td><td>ID del administrador responsable de la acción.</td></tr><tr><td><code>entidad</code></td><td><code>VARCHAR(40)</code></td><td>NO</td><td>Ninguno</td><td>Objeto modificado (<code>roles</code>, <code>estados</code>, <code>usuarios</code>, <code>direcciones</code>).</td></tr><tr><td><code>accion</code></td><td><code>VARCHAR(40)</code></td><td>NO</td><td>Ninguno</td><td>Operación ejecutada (<code>crear</code>, <code>modificar</code>, <code>eliminar</code>, <code>asignar</code>).</td></tr><tr><td><code>detalle</code></td><td><code>TEXT</code></td><td>SÍ</td><td><code>NULL</code></td><td>Payload serializado con los parámetros del cambio.</td></tr><tr><td><code>creado_en</code></td><td><code>TIMESTAMP</code></td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td><strong>IX</strong></td><td>Timestamp exacto de la modificación.</td></tr></tbody></table>
+<ul><li><strong>Índices:</strong> <code>idx_conf_fecha (creado_en)</code></li></ul>
+<hr/>
+
+<h3>4.15. Tabla: <code>schema_version</code></h3>
+<em>Control de versiones y registro de ejecución de migraciones de la base de datos.</em>
+
+<ul><li><strong>Motor:</strong> <code>InnoDB</code> · <strong>Juego de caracteres:</strong> <code>utf8mb4</code> · <strong>Collation:</strong> <code>utf8mb4_unicode_ci</code></li><li><strong>Clave Primaria:</strong> <code>version</code></li></ul>
+<table><thead><tr><th>Columna</th><th>Tipo de Dato</th><th>Nulo</th><th>Por Defecto</th><th>Clave</th><th>Descripción del Campo y Reglas de Negocio</th></tr></thead><tbody><tr><td><code>version</code></td><td><code>INT</code></td><td>NO</td><td>Ninguno</td><td><strong>PK</strong></td><td>Número correlativo de la migración (01, 02... 18).</td></tr><tr><td><code>descripcion</code></td><td><code>VARCHAR(255)</code></td><td>NO</td><td>Ninguno</td><td>Nombre descriptivo del archivo SQL aplicado.</td></tr><tr><td><code>aplicada_en</code></td><td><code>TIMESTAMP</code></td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td>Fecha y hora en que el contenedor <code>migrador</code> ejecutó el script.</td></tr></tbody></table>
+<hr/>
+
+<h2>5. Matriz de Integridad Referencial y Cardinalidades</h2>
+
+<table><thead><tr><th>Relación (Origen → Destino)</th><th>Cardinalidad</th><th>Clave Foránea (<code>FK</code>)</th><th>Clave Destino (<code>PK/UK</code>)</th><th>Regla <code>ON DELETE</code></th><th>Regla <code>ON UPDATE</code></th><th>Semántica del Negocio</th></tr></thead><tbody><tr><td><code>iniciativas</code> → <code>direcciones</code></td><td>N : 1</td><td><code>direccion_id</code></td><td><code>direcciones.id</code></td><td><strong>CASCADE</strong></td><td><strong>CASCADE</strong></td><td>Toda iniciativa pertenece a una dirección rectora.</td></tr><tr><td><code>usuarios</code> → <code>direcciones</code></td><td>N : 1</td><td><code>direccion_id</code></td><td><code>direcciones.id</code></td><td><strong>SET NULL</strong></td><td><strong>CASCADE</strong></td><td>Los funcionarios están adscritos a una dirección (opcional para superadministradores).</td></tr><tr><td><code>documentos</code> → <code>iniciativas</code></td><td>N : 1</td><td><code>iniciativa_id</code></td><td><code>iniciativas.id</code></td><td><strong>CASCADE</strong></td><td><strong>CASCADE</strong></td><td>Los documentos adjuntos se eliminan en cascada si la iniciativa se destruye.</td></tr><tr><td><code>historial_iniciativa</code> → <code>iniciativas</code></td><td>N : 1</td><td><code>iniciativa_id</code></td><td><code>iniciativas.id</code></td><td><strong>CASCADE</strong></td><td><strong>RESTRICT</strong></td><td>La bitácora acompaña el ciclo de vida de la iniciativa.</td></tr><tr><td><code>transiciones</code> → <code>estados</code> (Origen)</td><td>N : 1</td><td><code>estado_origen</code></td><td><code>estados.id</code></td><td><strong>CASCADE</strong></td><td><strong>RESTRICT</strong></td><td>Una transición parte de un estado de origen específico.</td></tr><tr><td><code>transiciones</code> → <code>estados</code> (Destino)</td><td>N : 1</td><td><code>estado_destino</code></td><td><code>estados.id</code></td><td><strong>CASCADE</strong></td><td><strong>RESTRICT</strong></td><td>Una transición arriba a un estado de destino válido.</td></tr><tr><td><code>estado_responsables</code> → <code>estados</code></td><td>N : 1</td><td><code>estado_id</code></td><td><code>estados.id</code></td><td><strong>CASCADE</strong></td><td><strong>RESTRICT</strong></td><td>Asignación de responsabilidad vinculada a un estado del flujo.</td></tr><tr><td><code>estado_responsables</code> → <code>usuarios</code></td><td>N : 1</td><td><code>usuario_id</code></td><td><code>usuarios.id</code></td><td><strong>CASCADE</strong></td><td><strong>RESTRICT</strong></td><td>Asignación de responsabilidad conferida a un funcionario acreditado.</td></tr><tr><td><code>estado_visibilidad</code> → <code>estados</code></td><td>1 : 1</td><td><code>estado_id</code></td><td><code>estados.id</code></td><td><strong>CASCADE</strong></td><td><strong>RESTRICT</strong></td><td>Regla de visualización estricta por estado.</td></tr><tr><td><code>rol_permisos</code> → <code>roles</code></td><td>N : 1</td><td><code>rol_id</code></td><td><code>roles.id</code></td><td><strong>CASCADE</strong></td><td><strong>RESTRICT</strong></td><td>Vinculación M:N entre roles y sus privilegios.</td></tr><tr><td><code>rol_permisos</code> → <code>permisos</code></td><td>N : 1</td><td><code>permiso_id</code></td><td><code>permisos.id</code></td><td><strong>CASCADE</strong></td><td><strong>RESTRICT</strong></td><td>Vinculación M:N entre permisos y los roles que los contienen.</td></tr><tr><td><code>usuarios</code> → <code>roles</code> (Lógica)</td><td>N : 1</td><td><code>rol_id</code></td><td><code>roles.id</code></td><td><strong>RESTRICT</strong></td><td><strong>RESTRICT</strong></td><td>Autorización dinámica; guardas en SP impiden eliminar roles en uso.</td></tr><tr><td><code>iniciativas</code> → <code>estados</code> (Lógica)</td><td>N : 1</td><td><code>estado_id</code></td><td><code>estados.id</code></td><td><strong>RESTRICT</strong></td><td><strong>RESTRICT</strong></td><td>Posicionamiento del trámite en la máquina de estados.</td></tr></tbody></table>
+<hr/>
+
+<h2>6. Catálogo de Procedimientos Almacenados y Funciones</h2>
+
+<p>El sistema cuenta con <strong>54 Procedimientos Almacenados</strong> y <strong>1 Función Determinística de Autorización</strong>.</p>
+
+<h3>6.1. Función de Seguridad</h3>
+<ul><li><code>fn_tiene_permiso(p_usuario_id INT, p_clave VARCHAR(60)) RETURNS TINYINT(1)</code>:  <br/>Evalúa si un usuario posee asignado un permiso directo o heredado a través de su <code>rol_id</code>. Retorna <code>1</code> (Concedido) o <code>0</code> (Denegado).</li></ul>
+<h3>6.2. Módulo de Autenticación y Cuentas (<code>ms-autenticacion</code>)</h3>
+<ul><li><code>sp_usuario_por_correo(p_correo)</code>: Obtiene la ficha completa de usuario y hash para verificación de login.</li><li><code>sp_registrar_ingreso(p_id)</code>: Resetea intentos fallidos y actualiza la fecha de último acceso.</li><li><code>sp_registrar_fallo(p_correo)</code>: Incrementa intentos fallidos y activa bloqueo temporal por fuerza bruta.</li><li><code>sp_guardar_contrasena(p_id, p_hash)</code>: Actualiza credenciales y desmarca la bandera <code>debe_cambiar</code>.</li><li><code>sp_crear_usuario(...)</code>: Registra cuentas con rol dinámico predeterminado.</li><li><code>sp_estado_de_usuario(p_id)</code>: Consulta el estado de activación (<code>activo</code>, <code>debe_cambiar</code>, <code>pendiente_aprobacion</code>).</li><li><code>sp_cerrar_sesiones_de_usuario(p_id)</code>: Invalida y depura las sesiones activas en la tabla <code>sesiones</code>.</li></ul>
+<h3>6.3. Módulo de Iniciativas y Expedientes (<code>ms-iniciativas</code> / <code>ms-radicacion</code>)</h3>
+<ul><li><code>sp_listar_iniciativas(p_direccion_id)</code>: Listado con cálculo de tiempo en estado y filtrado por visibilidad.</li><li><code>sp_crear_iniciativa(...)</code>: Alta de iniciativa asignando automáticamente el estado inicial del flujo (<code>es_inicial = 1</code>).</li><li><code>sp_actualizar_iniciativa(...)</code>: Edición con comparación binaria y registro fiel en <code>historial_iniciativa</code>.</li><li><code>sp_eliminar_iniciativa(p_id)</code>: Borrado lógico con desactivación en cascada.</li><li><code>sp_listar_documentos(p_iniciativa_id)</code>: Consulta del anexo documental de un trámite.</li><li><code>sp_agregar_documento(...)</code>: Incorporación de un nuevo archivo al expediente.</li><li><code>sp_eliminar_documento(p_id, p_iniciativa_id)</code>: Extracción de documento con validación de pertenencia.</li><li><code>sp_crear_propuesta(...)</code>: Radicación de propuesta ciudadana externa.</li><li><code>sp_adoptar_propuestas(p_correo, p_usuario_id)</code>: Asocia propuestas ciudadanas huérfanas al registrarse el proponente.</li><li><code>sp_exportar_csv()</code>: Volcado estructurado de iniciativas para reportes masivos.</li></ul>
+<h3>6.4. Módulo de Flujo y Máquina de Estados (<code>ms-flujo-estados</code>)</h3>
+<ul><li><code>sp_listar_estados()</code>: Consulta de estados con responsables agregados y recuento de iniciativas.</li><li><code>sp_transiciones_disponibles(p_iniciativa_id, p_usuario_id)</code>: Consulta de transiciones habilitadas para el usuario actual.</li><li><code>sp_mover_iniciativa(...)</code>: Ejecuta la transición de estado, valida permisos de responsable/superadmin, exige motivos y registra la bitácora.</li><li><code>sp_acotar_iniciativa(...)</code>: Modificación autorizada del objeto/alcance con registro del texto precedente.</li><li><code>sp_historial_iniciativa(p_iniciativa_id)</code>: Línea de tiempo cronológica completa de un trámite.</li><li><code>sp_guardar_responsable(...)</code>: Designa funcionarios con flags operativos granulares en un estado.</li><li><code>sp_quitar_responsable(...)</code>: Remueve un funcionario validando previamente que no sea el último responsable activo.</li><li><code>sp_estadisticas_flujo()</code>: Agregación de tiempos medios por estado y métricas de estancamiento (+60 días).</li></ul>
+<h3>6.5. Módulo de Administración y Catálogos (<code>ms-administracion</code>)</h3>
+<ul><li><code>sp_listar_roles()</code>: Lista de roles con recuento de usuarios y array de permisos asignados.</li><li><code>sp_guardar_rol(...)</code>: Creación o modificación de rol con sincronización transaccional de permisos.</li><li><code>sp_eliminar_rol(p_id)</code>: Borrado protegido de roles personalizados (impide eliminar roles del sistema o con usuarios).</li><li><code>sp_asignar_rol(p_usuario_id, p_rol_id)</code>: Actualiza <code>rol_id</code> y cierra inmediatamente las sesiones concurrentes.</li><li><code>sp_listar_usuarios()</code>: Padrón de usuarios con metadata institucional.</li><li><code>sp_actualizar_usuario(...)</code>: Modificación administrativa con guardas contra la desclasificación del último administrador.</li><li><code>sp_listar_direcciones_admin()</code>: Catálogo maestro de direcciones con estado de activación.</li><li><code>sp_guardar_direccion(...)</code>: Alta o actualización de dependencia institucional.</li></ul>
+<hr/>
+
+<h2>7. Políticas de Seguridad, Transaccionalidad y Concurrencia</h2>
+
+<h3>7.1. Inmunidad a Inyección SQL (Prepared Statements)</h3>
+<p>Todas las rutinas de la base de datos se consumen mediante sentencias preparadas en el driver binario <code>mysql2</code>:</p>
+<pre><code class="language-javascript">// Patrón de invocación obligatorio en todos los microservicios
+<p>const [resultados] = await pool.query('CALL sp_mover_iniciativa(?, ?, ?, ?, ?)', [</p>
+<p>iniciativaId,</p>
+<p>usuarioId,</p>
+<p>estadoDestinoId,</p>
+<p>tipoAccion,</p>
+<p>motivo</p>
+<p>]);</p>
+</code></pre>
+<p>No existen sentencias SQL dinámicas concatenadas en ninguna capa de la aplicación.</p>
+
+<h3>7.2. Integridad Transaccional y Semántica ACID</h3>
+<p>Las operaciones críticas que involucran múltiples tablas (<code>sp_mover_iniciativa</code>, <code>sp_guardar_rol</code>, <code>sp_asignar_rol</code>) se ejecutan dentro de bloques <code>START TRANSACTION ... COMMIT</code> con manejo de errores <code>DECLARE EXIT HANDLER FOR SQLEXCEPTION</code> que disparan <code>ROLLBACK</code> automático ante cualquier anomalía.</p>
+
+<h3>7.3. Prevención de Daño por Bloqueo Previo (Guardas SQL)</h3>
+<p>Para evitar el defecto de <em>daño confirmado con error posterior</em>, todas las validaciones de negocio se evalúan <strong>antes</strong> de emitir sentencias <code>UPDATE</code> o <code>DELETE</code>:</p>
+<pre><code class="language-sql">-- Guarda de seguridad: comprobar ANTES de modificar
+<p>IF NOT EXISTS (SELECT 1 FROM roles WHERE id = p_rol_id AND activo = 1) THEN</p>
+<p>SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El rol especificado no existe o se encuentra inactivo';</p>
+<p>END IF;</p>
+</code></pre>
+
+<hr/>
+
+<blockquote><strong>Documento Técnico de Ingeniería (Nivel 3)</strong>  <br/><strong>Proyecto:</strong> Sistema de Seguimiento de Iniciativas Legislativas  <br/><strong>Aprobado para:</strong> Despliegue en Infraestructura de Producción (<code>https://mininterior-iniciativas.fabricasoftware.co/</code>)</blockquote>
+
+</body>
+</html>

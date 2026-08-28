@@ -200,8 +200,9 @@ Las tres últimas cierran el jsdom y salen con código de proceso.
 - Con un diálogo abierto, los campos del formulario de fondo siguen en el
   DOM y los índices se corren. Acotar las consultas a `[role="dialog"]`.
 
-Para la base de datos, los scripts de `docs/pruebas-sql/` levantan MariaDB,
-aplican todas las migraciones y verifican las guardas de flujo y roles.
+Para verificar la plataforma extremo a extremo, `scripts/prueba-e2e.mjs` la
+sondea (humo + contrato del gateway + flujo); la base y las migraciones las
+gestiona el servicio `migrador` de Docker (ver `docs/migraciones.md`).
 
 ## Lo que falta
 
@@ -223,7 +224,7 @@ intenta guardar.
 y **ya exigen sesión y permiso**: la sesión en el montaje (`server.js`) y el
 permiso ruta por ruta con `tienePermiso(...)`. Los permisos se resuelven
 contra la base en cada petición, con caché corta, para que revocar surta
-efecto sin cerrar sesión. Ver `docs/pendientes.md`.
+efecto sin cerrar sesión. Ver `docs/interno/pendientes.md`.
 
 Otros pendientes con consecuencia: la API no envía correo (por eso el enlace
 de recuperación solo va al registro del servidor, ver

@@ -1,70 +1,18 @@
 # =====================================================================
-# Producción. Levanta los tres servicios y publica solo el 80 de Nginx:
-# MySQL y la API quedan en la red interna, sin puertos expuestos al host.
+# Orquestación completa de la plataforma (producción).
 #
 #   cp .env.example .env   (y completar)
 #   docker compose up -d --build
+#
+# La definición real de los servicios vive en infra-iniciativas, junto al
+# resto de la infraestructura. Este archivo solo la incluye para que
+# `docker compose up` funcione desde la raíz del repositorio agregador.
+#
+# La versión anterior de este archivo describía el MONOLITO (servicios
+# `api` y `web`, `docker/api.Dockerfile`, volumen `./db`), todo retirado al
+# pasar a multi-repositorio. Ejecutarla fallaba porque esas rutas ya no
+# existen. Ver docs/auditoria-qa.md (F-01).
 # =====================================================================
 
-services:
-  mysql:
-    image: mysql:8.4
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?falta MYSQL_ROOT_PASSWORD en .env}
-      MYSQL_DATABASE: ${DB_NAME:-iniciativas_legislativas}
-      MYSQL_USER: ${DB_USER:-iniciativas_app}
-      MYSQL_PASSWORD: ${DB_PASSWORD:?falta DB_PASSWORD en .env}
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-    volumes:
-      - datos_mysql:/var/lib/mysql
-      # Los scripts corren en orden alfabético al crear la base por primera vez
-      - ./db:/docker-entrypoint-initdb.d:ro
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD}"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 40s
-    networks: [interna]
-
-  api:
-    build:
-      context: .
-      dockerfile: docker/api.Dockerfile
-    restart: unless-stopped
-    environment:
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_NAME: ${DB_NAME:-iniciativas_legislativas}
-      DB_USER: ${DB_USER:-iniciativas_app}
-      DB_PASSWORD: ${DB_PASSWORD}
-      PORT: 3000
-      SESSION_SECRET: ${SESSION_SECRET:?falta SESSION_SECRET en .env}
-      NODE_ENV: production
-      ORIGEN_PERMITIDO: ${ORIGEN_PERMITIDO}
-    depends_on:
-      mysql:
-        condition: service_healthy
-    networks: [interna]
-
-  web:
-    build:
-      context: .
-      dockerfile: docker/web.Dockerfile
-    restart: unless-stopped
-    ports:
-      - "${PUERTO_PUBLICO:-8080}:80"
-    depends_on:
-      api:
-        condition: service_started
-    networks: [interna]
-
-volumes:
-  datos_mysql:
-
-networks:
-  interna:
-    driver: bridge
+include:
+  - infra-iniciativas/docker-compose.yml

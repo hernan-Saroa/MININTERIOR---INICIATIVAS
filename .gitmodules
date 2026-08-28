@@ -34,3 +34,6 @@
 [submodule "tipos-compartidos"]
 	path = tipos-compartidos
 	url = https://github.com/hernan-Saroa/tipos-compartidos.git
+[submodule "db-iniciativas"]
+	path = db-iniciativas
+	url = ./db-iniciativas

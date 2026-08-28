@@ -17,8 +17,8 @@ const fs = require('fs');
 const path = require('path');
 
 const RAIZ = path.join(__dirname, '..');
-const css = fs.readFileSync(path.join(RAIZ, 'web/src/tablero-aprobado.css'), 'utf8');
-const estilos = fs.readFileSync(path.join(RAIZ, 'web/src/estilos.css'), 'utf8');
+const css = fs.readFileSync(path.join(RAIZ, 'front-tablero/src/tablero-aprobado.css'), 'utf8');
+const estilos = fs.readFileSync(path.join(RAIZ, 'front-admin/src/estilos.css'), 'utf8');
 
 // --- Color ------------------------------------------------------------
 
@@ -150,7 +150,7 @@ const PARES = [
 
 // El mapa TONOS de web/src/ui/base.tsx: el único sitio donde /admin
 // resuelve el color de un estado. Ninguna auditoría lo había mirado.
-const base = fs.readFileSync(path.join(RAIZ, 'web/src/ui/base.tsx'), 'utf8');
+const base = fs.readFileSync(path.join(RAIZ, 'front-tablero/src/ui/base.tsx'), 'utf8');
 const bloqueTonos = /const TONOS[^=]*=\s*\{([\s\S]*?)\n\}/.exec(base);
 
 // --- Ejecución --------------------------------------------------------

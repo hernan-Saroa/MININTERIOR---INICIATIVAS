@@ -1,5 +1,13 @@
 # Pendientes
 
+> **Documento histórico (notas de trabajo).** Refleja el estado durante el
+> desarrollo del monolito y usa rutas antiguas (`api/rutas/…`). Para el estado
+> **actual** de calidad y lo que queda por hacer, ver **`docs/auditoria-qa.md`**.
+> Se conserva como registro de decisiones, no como fuente autorizada.
+
+---
+
+
 En orden de dependencia: cada bloque habilita el siguiente.
 
 ## 1. Endpoints `/api/admin/*` — RESUELTO

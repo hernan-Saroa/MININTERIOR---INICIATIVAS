@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Arquitectura Técnica — Sistema de Iniciativas Legislativas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+  :root {
+    --azul: #003876;
+    --azul-claro: #2151d1;
+    --fondo: #fafbfc;
+    --borde: #e2e6ea;
+    --texto: #1a1a2e;
+    --tenue: #5a6072;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--texto);
+    background: #fff;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 32px;
+  }
+
+  h1 { font-size: 26px; color: var(--azul); border-bottom: 3px solid var(--azul); padding-bottom: 8px; margin: 32px 0 16px; }
+  h2 { font-size: 21px; color: var(--azul); border-bottom: 2px solid var(--borde); padding-bottom: 6px; margin: 28px 0 14px; }
+  h3 { font-size: 17px; color: var(--azul-claro); margin: 22px 0 10px; }
+  h4 { font-size: 15px; color: var(--texto); margin: 18px 0 8px; }
+  h5 { font-size: 14px; color: var(--tenue); margin: 14px 0 6px; }
+
+  p { margin: 8px 0; }
+  hr { border: none; border-top: 1px solid var(--borde); margin: 24px 0; }
+
+  a { color: var(--azul-claro); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code {
+    background: #f0f2f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12.5px;
+    font-family: 'Consolas', 'Fira Code', monospace;
+  }
+
+  pre {
+    background: #1e2029;
+    color: #e8ecf1;
+    padding: 16px 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 12px 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  blockquote {
+    border-left: 4px solid var(--azul-claro);
+    background: #f0f4ff;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 13.5px;
+    color: #1a3a6b;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  th, td {
+    border: 1px solid var(--borde);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  th {
+    background: var(--azul);
+    color: #fff;
+    font-weight: 600;
+  }
+  tr:nth-child(even) { background: #f8f9fb; }
+
+  ul, ol { margin: 8px 0 8px 24px; }
+  li { margin: 4px 0; }
+
+  figure {
+    margin: 16px 0;
+    text-align: center;
+  }
+  figure img {
+    max-width: 100%;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  figcaption {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--tenue);
+    font-style: italic;
+  }
+
+  /* Mermaid placeholder */
+  pre.mermaid {
+    background: #f8f9fb;
+    color: var(--texto);
+    border: 1px dashed var(--borde);
+    text-align: center;
+    font-size: 12px;
+  }
+
+  /* Impresión */
+  @media print {
+    body { padding: 0; font-size: 11px; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 16px; page-break-after: avoid; }
+    h3, h4 { page-break-after: avoid; }
+    figure { page-break-inside: avoid; }
+    table { page-break-inside: avoid; }
+    pre { font-size: 10px; }
+    blockquote { background: #f0f4ff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    th { background: var(--azul) !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<h1>Arquitectura Técnica — Sistema de Iniciativas Legislativas</h1>
+
+<strong>Viceministerio para el Diálogo Social y los Derechos Humanos</strong>
+<p>Ministerio del Interior · República de Colombia</p>
+
+<strong>Versión:</strong> 1.0 · <strong>Fecha:</strong> 28 de agosto de 2026
+
+<hr/>
+
+<h2>Índice</h2>
+
+<ol><li><a href="#1-visión-general">Visión general</a></li><li><a href="#2-diagrama-de-arquitectura">Diagrama de arquitectura</a></li><li><a href="#3-repositorios-y-estructura">Repositorios y estructura</a></li><li><a href="#4-capa-de-datos">Capa de datos</a></li><li><a href="#5-capa-de-servicios-backend">Capa de servicios (backend)</a></li><li><a href="#6-api-gateway">API Gateway</a></li><li><a href="#7-capa-de-presentación-frontend">Capa de presentación (frontend)</a></li><li><a href="#8-seguridad-y-autorización">Seguridad y autorización</a></li><li><a href="#9-infraestructura-y-despliegue">Infraestructura y despliegue</a></li><li><a href="#10-entornos">Entornos</a></li><li><a href="#11-pruebas">Pruebas</a></li><li><a href="#12-decisiones-arquitectónicas">Decisiones arquitectónicas</a></li><li><a href="#13-pendientes-y-hoja-de-ruta">Pendientes y hoja de ruta</a></li></ol>
+<hr/>
+
+<h2>1. Visión general</h2>
+
+<p>El sistema está construido como una <strong>arquitectura de microservicios</strong></p>
+<p>orquestada con Docker Compose. Cada dominio funcional tiene su propio</p>
+<p>servicio desplegable de forma independiente, y los tres frontends se</p>
+<p>comunican con el backend exclusivamente a través de un API Gateway.</p>
+
+<h3>Principios rectores</h3>
+
+<table><thead><tr><th>Principio</th><th>Implementación</th></tr></thead><tbody><tr><td>Despliegue independiente</td><td>Cada microservicio y frontend es un contenedor Docker separado; redesplegar uno no afecta a los demás</td></tr><tr><td>Seguridad por construcción</td><td>Toda la lógica de datos vive en procedimientos almacenados MySQL; la API nunca construye SQL</td></tr><tr><td>Permisos granulares</td><td>La autorización se resuelve por permisos (no roles), verificados ruta por ruta contra la base en cada petición</td></tr><tr><td>Identidad institucional</td><td>Los frontends replican la imagen GOV.CO, cumplen WCAG 2.1 AA (Resolución 1519 MinTIC)</td></tr><tr><td>Migraciones idempotentes</td><td>Las 18 migraciones se aplican en orden sin destruir datos; nunca se edita una ya aplicada</td></tr></tbody></table>
+<h3>Stack tecnológico</h3>
+
+<table><thead><tr><th>Capa</th><th>Tecnología</th></tr></thead><tbody><tr><td>Frontend</td><td>React 18 · TypeScript · Vite · React Router · TanStack Query · Recharts · Lucide · CSS vanilla</td></tr><tr><td>Backend</td><td>Node.js 20 · Express 4 · mysql2 · express-session · express-mysql-session</td></tr><tr><td>Gateway</td><td>Express · http-proxy-middleware · express-rate-limit</td></tr><tr><td>Base de datos</td><td>MySQL 8.4 (utf8mb4)</td></tr><tr><td>Caché / Colas</td><td>Redis 7 (reservado; sin uso activo)</td></tr><tr><td>Infraestructura</td><td>Docker · Docker Compose · Nginx (frontends)</td></tr><tr><td>Control de versiones</td><td>Git · GitHub · Submodules</td></tr></tbody></table>
+<hr/>
+
+<h2>2. Diagrama de arquitectura</h2>
+
+<pre class="mermaid">graph TB
+<p>subgraph "Navegador"</p>
+<p>FT["front-tablero<br/>:8080"]</p>
+<p>FR["front-radicacion<br/>:8081"]</p>
+<p>FA["front-admin<br/>:8082"]</p>
+<p>end</p>
+
+<p>subgraph "API Gateway :3000"</p>
+<p>GW["api-gateway<br/>proxy + rate-limit"]</p>
+<p>end</p>
+
+<p>FT --> GW</p>
+<p>FR --> GW</p>
+<p>FA --> GW</p>
+
+<p>subgraph "Microservicios"</p>
+<p>AUTH["ms-autenticacion<br/>:3001"]</p>
+<p>INI["ms-iniciativas<br/>:3002"]</p>
+<p>RAD["ms-radicacion<br/>:3003"]</p>
+<p>FLUJO["ms-flujo-estados<br/>:3004"]</p>
+<p>NOTI["ms-notificaciones<br/>:3005"]</p>
+<p>ADMIN["ms-administracion<br/>:3006"]</p>
+<p>end</p>
+
+<p>GW --> AUTH</p>
+<p>GW --> INI</p>
+<p>GW --> RAD</p>
+<p>GW --> FLUJO</p>
+<p>GW --> NOTI</p>
+<p>GW --> ADMIN</p>
+
+<p>subgraph "Datos"</p>
+<p>DB[("MySQL 8.4<br/>iniciativas_legislativas")]</p>
+<p>REDIS["Redis 7<br/>(reservado)"]</p>
+<p>end</p>
+
+<p>AUTH --> DB</p>
+<p>INI --> DB</p>
+<p>RAD --> DB</p>
+<p>FLUJO --> DB</p>
+<p>NOTI --> DB</p>
+<p>NOTI --> REDIS</p>
+<p>ADMIN --> DB</p>
+
+<p>MIG["migrador<br/>(one-shot)"] --> DB</pre></p>
+
+<h3>Flujo de una petición</h3>
+
+<pre><code class="language-">Navegador → Nginx (front-tablero :8080)
+<p>→ JS hace fetch('/api/…')</p>
+<p>→ API Gateway (:3000)</p>
+<p>→ Proxy inverso → ms-xxx (:300X)</p>
+<p>→ pool.query('CALL sp_xxx(?, ?)', [...])</p>
+<p>→ MySQL → respuesta JSON → Navegador</p>
+</code></pre>
+
+<hr/>
+
+<h2>3. Repositorios y estructura</h2>
+
+<p>El proyecto usa un <strong>repositorio agregador</strong> con 13 submódulos Git:</p>
+
+<table><thead><tr><th>Submódulo</th><th>Tipo</th><th>Puerto</th><th>Repositorio</th></tr></thead><tbody><tr><td><code>front-tablero</code></td><td>Frontend</td><td>8080</td><td>mininterior-iniciativas/front-tablero</td></tr><tr><td><code>front-radicacion</code></td><td>Frontend</td><td>8081</td><td>mininterior-iniciativas/front-radicacion</td></tr><tr><td><code>front-admin</code></td><td>Frontend</td><td>8082</td><td>mininterior-iniciativas/front-admin</td></tr><tr><td><code>api-gateway</code></td><td>Gateway</td><td>3000</td><td>mininterior-iniciativas/api-gateway</td></tr><tr><td><code>ms-autenticacion</code></td><td>Microservicio</td><td>3001</td><td>mininterior-iniciativas/ms-autenticacion</td></tr><tr><td><code>ms-iniciativas</code></td><td>Microservicio</td><td>3002</td><td>mininterior-iniciativas/ms-iniciativas</td></tr><tr><td><code>ms-radicacion</code></td><td>Microservicio</td><td>3003</td><td>mininterior-iniciativas/ms-radicacion</td></tr><tr><td><code>ms-flujo-estados</code></td><td>Microservicio</td><td>3004</td><td>mininterior-iniciativas/ms-flujo-estados</td></tr><tr><td><code>ms-notificaciones</code></td><td>Microservicio</td><td>3005</td><td>mininterior-iniciativas/ms-notificaciones</td></tr><tr><td><code>ms-administracion</code></td><td>Microservicio</td><td>3006</td><td>mininterior-iniciativas/ms-administracion</td></tr><tr><td><code>db-iniciativas</code></td><td>Base de datos</td><td>—</td><td>mininterior-iniciativas/db-iniciativas</td></tr><tr><td><code>infra-iniciativas</code></td><td>Infraestructura</td><td>—</td><td>mininterior-iniciativas/infra-iniciativas</td></tr><tr><td><code>tipos-compartidos</code></td><td>Tipos TS</td><td>—</td><td>mininterior-iniciativas/tipos-compartidos</td></tr></tbody></table>
+<h3>Estructura del repositorio agregador</h3>
+
+<pre><code class="language-">Iniciativas/                 ← Raíz del repo agregador
+<p>├── docker-compose.yml       ← Include → infra-iniciativas/</p>
+<p>├── docker-compose.dev.yml   ← Solo levanta MySQL + migrador</p>
+<p>├── .env.example             ← Variables de entorno</p>
+<p>├── start_all.ps1            ← Script Windows: levanta todo</p>
+<p>├── stop_all.ps1             ← Script Windows: detiene todo</p>
+<p>├── AGENTS.md                ← Reglas del proyecto (para IA y humanos)</p>
+<p>├── INSTALACION.md           ← Guía de instalación</p>
+<p>├── README.md                ← Introducción</p>
+<p>│</p>
+<p>├── db-iniciativas/          ← Fuente única de verdad del esquema</p>
+<p>│   ├── migraciones/         ← 18 archivos SQL numerados</p>
+<p>│   ├── seeds/               ← Datos de demostración</p>
+<p>│   └── scripts/             ← Utilidades de base</p>
+<p>│</p>
+<p>├── infra-iniciativas/       ← docker-compose.yml de producción</p>
+<p>│</p>
+<p>├── api-gateway/             ← Proxy inverso + rate-limit</p>
+<p>├── ms-autenticacion/        ← Login, registro, sesiones</p>
+<p>├── ms-iniciativas/          ← CRUD de iniciativas</p>
+<p>├── ms-radicacion/           ← Formulario de radicación</p>
+<p>├── ms-flujo-estados/        ← Estados, transiciones, responsables</p>
+<p>├── ms-notificaciones/       ← Envío de correo (nodemailer)</p>
+<p>├── ms-administracion/       ← Roles, usuarios, configuración</p>
+<p>│</p>
+<p>├── front-tablero/           ← Tablero + panel de detalle</p>
+<p>├── front-radicacion/        ← Formulario público de radicación</p>
+<p>├── front-admin/             ← Zona administrativa</p>
+<p>│</p>
+<p>├── tipos-compartidos/       ← Interfaces TypeScript compartidas</p>
+<p>├── docs/                    ← Documentación técnica</p>
+<p>├── referencia/              ← Frontend original (sin React)</p>
+<p>└── scripts/                 ← Migraciones, verificaciones, contraste</p>
+</code></pre>
+
+<hr/>
+
+<h2>4. Capa de datos</h2>
+
+<h3>4.1. Base de datos</h3>
+
+<ul><li><strong>Motor:</strong> MySQL 8.4</li><li><strong>Base:</strong> <code>iniciativas_legislativas</code></li><li><strong>Charset:</strong> <code>utf8mb4</code> / <code>utf8mb4_unicode_ci</code></li><li><strong>Modelo:</strong> una sola base compartida por los 6 microservicios</li></ul>
+<blockquote><strong>Decisión de diseño:</strong> las migraciones hacen <code>ALTER</code> cruzados entre<br/>dominios (auth modifica <code>usuarios</code>, flujo modifica <code>iniciativas</code>), y la<br/>sesión (<code>express-mysql-session</code>, tabla <code>sesiones</code>) debe ser la misma para<br/>todos. Separar en 6 bases sería un rediseño completo.</blockquote>
+
+<h3>4.2. Tablas principales</h3>
+
+<table><thead><tr><th>Tabla</th><th>Dominio</th><th>Propósito</th></tr></thead><tbody><tr><td><code>direcciones</code></td><td>Catálogo</td><td>Dependencias del Viceministerio</td></tr><tr><td><code>estados</code></td><td>Flujo</td><td>Estados del ciclo de vida</td></tr><tr><td><code>estado_responsables</code></td><td>Flujo</td><td>Quién atiende cada estado</td></tr><tr><td><code>estado_transiciones</code></td><td>Flujo</td><td>Reglas de avance/devolución/rechazo</td></tr><tr><td><code>estado_visibilidad</code></td><td>Flujo</td><td>Quién puede ver en cada estado</td></tr><tr><td><code>iniciativas</code></td><td>Core</td><td>Registro de cada iniciativa</td></tr><tr><td><code>historial_iniciativas</code></td><td>Core</td><td>Línea de tiempo de movimientos</td></tr><tr><td><code>documentos</code></td><td>Core</td><td>Archivos adjuntos</td></tr><tr><td><code>usuarios</code></td><td>Auth</td><td>Cuentas de usuario</td></tr><tr><td><code>roles</code></td><td>Auth</td><td>Definiciones de roles</td></tr><tr><td><code>permisos</code></td><td>Auth</td><td>Catálogo de permisos del sistema</td></tr><tr><td><code>rol_permisos</code></td><td>Auth</td><td>Asignación permiso → rol</td></tr><tr><td><code>sesiones</code></td><td>Auth</td><td>Sesiones activas (express-mysql-session)</td></tr><tr><td><code>configuracion</code></td><td>Admin</td><td>Parámetros del sistema</td></tr><tr><td><code>schema_version</code></td><td>Sistema</td><td>Control de migraciones aplicadas</td></tr></tbody></table>
+<h3>4.3. Procedimientos almacenados</h3>
+
+<p>Toda la lógica de datos reside en <strong>procedimientos almacenados</strong>. La API</p>
+<strong>nunca</strong> construye SQL dinámico; siempre hace:
+
+<pre><code class="language-javascript">pool.query('CALL sp_nombre(?, ?, ?)', [param1, param2, param3])
+</code></pre>
+
+<table><thead><tr><th>Procedimiento</th><th>Dominio</th><th>Acción</th></tr></thead><tbody><tr><td><code>sp_crear_iniciativa</code></td><td>Core</td><td>Alta con estado inicial del flujo</td></tr><tr><td><code>sp_mover_iniciativa</code></td><td>Flujo</td><td>Transición con validación + historial</td></tr><tr><td><code>sp_actualizar_iniciativa</code></td><td>Core</td><td>Edición con historial</td></tr><tr><td><code>sp_eliminar_iniciativa</code></td><td>Core</td><td>Borrado lógico</td></tr><tr><td><code>sp_crear_usuario</code></td><td>Auth</td><td>Alta con hash de contraseña</td></tr><tr><td><code>sp_actualizar_usuario</code></td><td>Auth</td><td>Edición con guardas previas</td></tr><tr><td><code>sp_asignar_rol</code></td><td>Auth</td><td>Cambio de rol con cierre de sesiones</td></tr><tr><td><code>sp_crear_rol</code></td><td>Admin</td><td>Alta de rol con permisos</td></tr><tr><td><code>sp_actualizar_rol</code></td><td>Admin</td><td>Edición + sincronización de permisos</td></tr><tr><td><code>fn_tiene_permiso(uid, clave)</code></td><td>Auth</td><td>Función: ¿el usuario tiene el permiso?</td></tr></tbody></table>
+<h3>4.4. Migraciones</h3>
+
+<p>18 archivos SQL numerados, idempotentes y ejecutados en orden:</p>
+
+<table><thead><tr><th>#</th><th>Archivo</th><th>Qué hace</th></tr></thead><tbody><tr><td>01</td><td><code>01_schema.sql</code></td><td>Tablas base: direcciones, estados, iniciativas, documentos</td></tr><tr><td>02</td><td><code>02_procedimientos.sql</code></td><td>Procedimientos CRUD iniciales</td></tr><tr><td>03</td><td><code>03_datos_iniciales.sql</code></td><td>Datos semilla: estados, direcciones, permisos</td></tr><tr><td>04</td><td><code>04_autenticacion.sql</code></td><td>Tabla usuarios, sesiones, login, registro</td></tr><tr><td>05</td><td><code>05_propuestas.sql</code></td><td>Iniciativa ciudadana (proponente)</td></tr><tr><td>06</td><td><code>06_roles_permisos.sql</code></td><td>Sistema de roles y permisos granulares</td></tr><tr><td>07</td><td><code>07_flujo_estados.sql</code></td><td>Máquina de estados con transiciones y responsables</td></tr><tr><td>08</td><td><code>08_correcciones.sql</code></td><td>Corrección de borrado indebido al guardar</td></tr><tr><td>09</td><td><code>09_flujo_al_crear.sql</code></td><td>Estado automático al crear iniciativa</td></tr><tr><td>10</td><td><code>10_historial_de_edicion.sql</code></td><td>Historial de ediciones de campos</td></tr><tr><td>11</td><td><code>11_historial_fiel.sql</code></td><td>Historial corregido (fiel al cambio real)</td></tr><tr><td>12</td><td><code>12_ver_proponente.sql</code></td><td>Permiso <code>iniciativas.ver_proponente</code></td></tr><tr><td>13</td><td><code>13_tiempo_en_estado.sql</code></td><td>Cálculo de tiempo en cada estado</td></tr><tr><td>14</td><td><code>14_autorizacion_y_flujo.sql</code></td><td>Autorización por permisos y flujo vivo</td></tr><tr><td>15</td><td><code>15_cuentas_y_sesiones.sql</code></td><td>Cuentas nuevas con rol dinámico y cierre de sesiones</td></tr><tr><td>16</td><td><code>16_alta_usuario.sql</code></td><td>Alta de usuario desde admin</td></tr><tr><td>17</td><td><code>17_direcciones_admin.sql</code></td><td>CRUD de direcciones desde admin</td></tr><tr><td>18</td><td><code>18_flujo_mover_admin.sql</code></td><td>Superadmin puede mover sin ser responsable</td></tr></tbody></table>
+<blockquote><strong>Regla:</strong> una migración aplicada en producción <strong>nunca se modifica</strong>. Se<br/>escribe la siguiente. Cada una declara <code>SET NAMES utf8mb4</code> y registra su<br/>versión en <code>schema_version</code>.</blockquote>
+
+<hr/>
+
+<h2>5. Capa de servicios (backend)</h2>
+
+<h3>5.1. Patrón común</h3>
+
+<p>Todos los microservicios siguen el mismo patrón:</p>
+
+<pre><code class="language-">ms-xxx/
+<p>├── src/</p>
+<p>│   ├── server.js         ← Express + sesión + CORS + rutas</p>
+<p>│   ├── rutas/            ← Definición de endpoints</p>
+<p>│   └── middleware/        ← Guardas de sesión y permisos</p>
+<p>├── migraciones/          ← Copia local de las migraciones de su dominio</p>
+<p>├── docker/</p>
+<p>│   └── Dockerfile        ← node:20-alpine, USER node</p>
+<p>└── package.json</p>
+</code></pre>
+
+<strong>Dependencias compartidas por los 6:</strong>
+
+<table><thead><tr><th>Paquete</th><th>Versión</th><th>Función</th></tr></thead><tbody><tr><td><code>express</code></td><td>4.x</td><td>Framework HTTP</td></tr><tr><td><code>cors</code></td><td>2.x</td><td>Control de origen cruzado</td></tr><tr><td><code>mysql2</code></td><td>3.x</td><td>Driver MySQL con promesas</td></tr><tr><td><code>dotenv</code></td><td>16.x</td><td>Variables de entorno</td></tr><tr><td><code>express-session</code></td><td>1.x</td><td>Gestión de sesiones</td></tr><tr><td><code>express-mysql-session</code></td><td>3.x</td><td>Almacén de sesiones en MySQL</td></tr></tbody></table>
+<strong>Adicional por servicio:</strong>
+
+<table><thead><tr><th>Servicio</th><th>Paquete extra</th><th>Función</th></tr></thead><tbody><tr><td>ms-autenticacion</td><td><code>express-rate-limit</code></td><td>Protección contra fuerza bruta</td></tr><tr><td>ms-notificaciones</td><td><code>nodemailer</code></td><td>Envío de correo electrónico</td></tr></tbody></table>
+<h3>5.2. Microservicios</h3>
+
+<h4>ms-autenticacion (:3001)</h4>
+
+<table><thead><tr><th>Responsabilidad</th><th>Endpoints</th></tr></thead><tbody><tr><td>Login / logout</td><td><code>POST /api/auth/login</code>, <code>POST /api/auth/logout</code></td></tr><tr><td>Registro (autoservicio)</td><td><code>POST /api/auth/registro</code></td></tr><tr><td>Sesión actual</td><td><code>GET /api/auth/sesion</code></td></tr><tr><td>Recuperación de contraseña</td><td><code>POST /api/auth/recuperar</code>, <code>POST /api/auth/restablecer</code></td></tr><tr><td>Cambio de contraseña</td><td><code>POST /api/auth/cambiar-contrasena</code></td></tr></tbody></table>
+<h4>ms-iniciativas (:3002)</h4>
+
+<table><thead><tr><th>Responsabilidad</th><th>Endpoints</th></tr></thead><tbody><tr><td>CRUD de iniciativas</td><td><code>GET/POST/PUT/DELETE /api/iniciativas</code></td></tr><tr><td>Detalle de una iniciativa</td><td><code>GET /api/iniciativas/:id</code></td></tr><tr><td>Historial</td><td><code>GET /api/iniciativas/:id/historial</code></td></tr><tr><td>Documentos</td><td><code>GET/POST/DELETE /api/iniciativas/:id/documentos</code></td></tr><tr><td>Exportación CSV</td><td><code>GET /api/iniciativas/exportar</code></td></tr></tbody></table>
+<h4>ms-radicacion (:3003)</h4>
+
+<table><thead><tr><th>Responsabilidad</th><th>Endpoints</th></tr></thead><tbody><tr><td>Radicación ciudadana</td><td><code>POST /api/radicacion</code></td></tr><tr><td>Consulta de radicado</td><td><code>GET /api/radicacion/:codigo</code></td></tr></tbody></table>
+<h4>ms-flujo-estados (:3004)</h4>
+
+<table><thead><tr><th>Responsabilidad</th><th>Endpoints</th></tr></thead><tbody><tr><td>Estados del flujo</td><td><code>GET /api/estados</code></td></tr><tr><td>Transiciones</td><td><code>GET /api/estados/:id/transiciones</code></td></tr><tr><td>Mover iniciativa</td><td><code>POST /api/flujo/mover</code></td></tr><tr><td>Responsables</td><td><code>GET/POST/DELETE /api/estados/:id/responsables</code></td></tr><tr><td>Estadísticas</td><td><code>GET /api/estadisticas</code></td></tr></tbody></table>
+<h4>ms-notificaciones (:3005)</h4>
+
+<table><thead><tr><th>Responsabilidad</th><th>Endpoints</th></tr></thead><tbody><tr><td>Envío de correo</td><td><code>POST /api/notificaciones/enviar</code> (requiere token de servicio)</td></tr></tbody></table>
+<h4>ms-administracion (:3006)</h4>
+
+<table><thead><tr><th>Responsabilidad</th><th>Endpoints</th></tr></thead><tbody><tr><td>Gestión de usuarios</td><td><code>GET/POST/PUT /api/admin/usuarios</code></td></tr><tr><td>Gestión de roles</td><td><code>GET/POST/PUT/DELETE /api/admin/roles</code></td></tr><tr><td>Permisos del sistema</td><td><code>GET /api/admin/permisos</code></td></tr><tr><td>Direcciones (CRUD)</td><td><code>GET/POST/PUT /api/admin/direcciones</code></td></tr><tr><td>Configuración</td><td><code>GET/PUT /api/admin/configuracion</code></td></tr></tbody></table>
+<hr/>
+
+<h2>6. API Gateway</h2>
+
+<strong>Puerto:</strong> 3000
+
+<p>El gateway es un <strong>proxy inverso</strong> que enruta peticiones según el prefijo</p>
+<p>de la URL:</p>
+
+<table><thead><tr><th>Prefijo</th><th>Destino</th></tr></thead><tbody><tr><td><code>/api/auth/<em></code></td><td>ms-autenticacion (:3001)</td></tr><tr><td><code>/api/iniciativas/</em></code></td><td>ms-iniciativas (:3002)</td></tr><tr><td><code>/api/radicacion/<em></code></td><td>ms-radicacion (:3003)</td></tr><tr><td><code>/api/estados/</em></code>, <code>/api/flujo/<em></code>, <code>/api/estadisticas</code></td><td>ms-flujo-estados (:3004)</td></tr><tr><td><code>/api/notificaciones/</em></code></td><td>ms-notificaciones (:3005)</td></tr><tr><td><code>/api/admin/<em></code></td><td>ms-administracion (:3006)</td></tr><tr><td><code>/api/salud</code></td><td>Health check propio</td></tr></tbody></table>
+<strong>Funciones adicionales:</strong>
+
+<ul><li><code>express-rate-limit</code>: limita peticiones por IP</li><li>CORS: solo acepta orígenes de <code>ORIGEN_PERMITIDO</code></li><li>No maneja sesiones ni autenticación (lo delega a cada MS)</li></ul>
+<hr/>
+
+<h2>7. Capa de presentación (frontend)</h2>
+
+<h3>7.1. Stack común</h3>
+
+<table><thead><tr><th>Tecnología</th><th>Función</th></tr></thead><tbody><tr><td>React 18</td><td>Componentes UI</td></tr><tr><td>TypeScript</td><td>Tipado estático</td></tr><tr><td>Vite</td><td>Bundler y dev server</td></tr><tr><td>React Router 6</td><td>Enrutamiento SPA</td></tr><tr><td>TanStack Query</td><td>Cache y sincronización con la API</td></tr><tr><td>Recharts</td><td>Gráficos (barras, áreas, dona)</td></tr><tr><td>Lucide React</td><td>Iconografía</td></tr><tr><td>CSS vanilla</td><td>Estilos sin framework</td></tr></tbody></table>
+<h3>7.2. Frontends</h3>
+
+<table><thead><tr><th>Frontend</th><th>Puerto</th><th>Propósito</th><th>Rutas principales</th></tr></thead><tbody><tr><td><code>front-tablero</code></td><td>8080</td><td>Tablero institucional + Admin</td><td><code>/</code>, <code>/publico</code>, <code>/admin/</em></code></td></tr><tr><td><code>front-radicacion</code></td><td>8081</td><td>Formulario público de radicación</td><td><code>/radicacion</code></td></tr><tr><td><code>front-admin</code></td><td>8082</td><td>Panel administrativo independiente</td><td><code>/admin/<em></code></td></tr></tbody></table>
+<h3>7.3. Despliegue del frontend</h3>
+
+<p>Cada frontend se construye como una SPA y se sirve con <strong>Nginx</strong>:</p>
+
+<pre><code class="language-dockerfile">FROM node:20-alpine AS build
+<p>WORKDIR /app</p>
+<p>COPY package</em>.json ./</p>
+<p>RUN npm ci</p>
+<p>COPY . .</p>
+<p>RUN npm run build</p>
+
+<p>FROM nginx:alpine</p>
+<p>COPY --from=build /app/dist /usr/share/nginx/html</p>
+<p>COPY docker/nginx.conf /etc/nginx/conf.d/default.conf</p>
+</code></pre>
+
+<p>Nginx maneja:</p>
+<ul><li>Servir archivos estáticos con cache</li><li>Reescribir todas las rutas a <code>index.html</code> (SPA)</li><li>Proxy de <code>/api/*</code> al API Gateway</li></ul>
+<h3>7.4. Identidad institucional</h3>
+
+<p>Los frontends replican la imagen de GOV.CO:</p>
+
+<ul><li>Barra superior azul con logo GOV.CO</li><li>Franja institucional con logo del Ministerio</li><li>Pie de página institucional</li><li>Paleta: navy GOV.CO (#003876), azul de acción (#2151d1)</li><li>Accesibilidad: contraste WCAG 2.1 AA verificado por script</li></ul>
+<hr/>
+
+<h2>8. Seguridad y autorización</h2>
+
+<h3>8.1. Modelo de sesión</h3>
+
+<ul><li><strong>express-session</strong> con almacén MySQL (<code>express-mysql-session</code>)</li><li>Cookie <code>HttpOnly</code>, <code>SameSite=Lax</code>, <code>Secure</code> en producción</li><li>El <code>SESSION_SECRET</code> es <strong>idéntico</strong> en los 6 microservicios: permite que<br/>la cookie firmada en uno la validen los demás</li><li>Tabla <code>sesiones</code> compartida en la misma base</li></ul>
+<h3>8.2. Modelo de autorización</h3>
+
+<pre><code class="language-">Usuario → rol_id → Rol → rol_permisos → Permisos
+</code></pre>
+
+<ul><li>La autorización se basa en <strong>permisos</strong>, no en roles</li><li><code>fn_tiene_permiso(usuario_id, 'clave.permiso')</code> resuelve en la base</li><li><code>permisosDe()</code> en el frontend consulta <code>GET /api/auth/sesion</code></li><li>Los permisos se verifican <strong>en cada petición</strong>, con caché corta</li><li>Revocar un permiso surte efecto sin cerrar sesión</li></ul>
+<h3>8.3. Guardas del backend</h3>
+
+<p>Cada ruta verifica permisos antes de ejecutar:</p>
+
+<pre><code class="language-javascript">// Middleware de sesión: rechaza si no hay sesión
+<p>if (!req.session?.usuario_id) return res.status(401).json(...)</p>
+
+<p>// Verificación de permiso específico</p>
+<p>const tiene = await pool.query('SELECT fn_tiene_permiso(?, ?) AS ok',</p>
+<p>[req.session.usuario_id, 'flujo.mover']);</p>
+<p>if (!tiene[0][0].ok) return res.status(403).json(...)</p>
+</code></pre>
+
+<h3>8.4. Prevención de inyección SQL</h3>
+
+<strong>Por construcción, no por disciplina:</strong>
+
+<ul><li>La API <strong>nunca</strong> arma SQL: siempre llama procedimientos almacenados</li><li>Los parámetros se pasan como <code>?</code> (prepared statements)</li><li>No existe concatenación de strings en ningún punto del backend</li></ul>
+<h3>8.5. Rate limiting</h3>
+
+<ul><li><code>express-rate-limit</code> en el API Gateway (global)</li><li>Rate limit adicional en ms-autenticacion para login y registro</li></ul>
+<hr/>
+
+<h2>9. Infraestructura y despliegue</h2>
+
+<h3>9.1. Servicios Docker (producción)</h3>
+
+<table><thead><tr><th>Servicio</th><th>Imagen base</th><th>Puerto expuesto</th><th>Volumen</th></tr></thead><tbody><tr><td>db</td><td>mysql:8.4</td><td>— (solo red interna)</td><td><code>datos_db</code></td></tr><tr><td>redis</td><td>redis:7-alpine</td><td>— (solo red interna)</td><td><code>datos_redis</code></td></tr><tr><td>migrador</td><td>mysql:8.4</td><td>— (one-shot)</td><td>Bind mounts a migraciones</td></tr><tr><td>ms-autenticacion</td><td>node:20-alpine</td><td>3001 (interno)</td><td>—</td></tr><tr><td>ms-iniciativas</td><td>node:20-alpine</td><td>3002 (interno)</td><td>—</td></tr><tr><td>ms-radicacion</td><td>node:20-alpine</td><td>3003 (interno)</td><td>—</td></tr><tr><td>ms-flujo-estados</td><td>node:20-alpine</td><td>3004 (interno)</td><td>—</td></tr><tr><td>ms-notificaciones</td><td>node:20-alpine</td><td>3005 (interno)</td><td>—</td></tr><tr><td>ms-administracion</td><td>node:20-alpine</td><td>3006 (interno)</td><td>—</td></tr><tr><td>api-gateway</td><td>node:20-alpine</td><td>3000 (interno)</td><td>—</td></tr><tr><td>front-tablero</td><td>nginx:alpine</td><td><strong>8080</strong> (público)</td><td>—</td></tr><tr><td>front-radicacion</td><td>nginx:alpine</td><td><strong>8081</strong> (público)</td><td>—</td></tr><tr><td>front-admin</td><td>nginx:alpine</td><td><strong>8082</strong> (público)</td><td>—</td></tr></tbody></table>
+<h3>9.2. Red</h3>
+
+<ul><li>Red Docker bridge: <code>interna</code></li><li>Solo los frontends exponen puertos al host</li><li>Los microservicios se comunican entre sí por nombre de servicio DNS</li></ul>
+<h3>9.3. Orden de arranque</h3>
+
+<pre class="mermaid">graph LR
+<p>DB["db (MySQL)"] -->|healthy| MIG["migrador"]</p>
+<p>MIG -->|completed| AUTH["ms-autenticacion"]</p>
+<p>MIG -->|completed| INI["ms-iniciativas"]</p>
+<p>MIG -->|completed| RAD["ms-radicacion"]</p>
+<p>MIG -->|completed| FLUJO["ms-flujo-estados"]</p>
+<p>MIG -->|completed| NOTI["ms-notificaciones"]</p>
+<p>MIG -->|completed| ADMIN["ms-administracion"]</p>
+<p>AUTH --> GW["api-gateway"]</p>
+<p>INI --> GW</p>
+<p>RAD --> GW</p>
+<p>FLUJO --> GW</p>
+<p>NOTI --> GW</p>
+<p>ADMIN --> GW</p>
+<p>GW --> FT["front-tablero"]</p>
+<p>GW --> FR["front-radicacion"]</p>
+<p>GW --> FA["front-admin"]</pre></p>
+
+<h3>9.4. Variables de entorno</h3>
+
+<table><thead><tr><th>Variable</th><th>Descripción</th><th>Compartida</th></tr></thead><tbody><tr><td><code>DB_ROOT_PASSWORD</code></td><td>Password root de MySQL</td><td>Solo db + migrador</td></tr><tr><td><code>DB_USER</code></td><td>Usuario de la aplicación</td><td>Los 6 MS</td></tr><tr><td><code>DB_PASSWORD</code></td><td>Password del usuario app</td><td>Los 6 MS</td></tr><tr><td><code>SESSION_SECRET</code></td><td>Secreto para firmar cookies</td><td><strong>Los 6 MS</strong> (idéntico)</td></tr><tr><td><code>SERVICIO_TOKEN</code></td><td>Token para llamadas entre servicios</td><td>ms-notificaciones</td></tr><tr><td><code>ORIGEN_PERMITIDO</code></td><td>Orígenes CORS</td><td>Gateway + MS</td></tr><tr><td><code>PUERTO_TABLERO</code></td><td>Puerto público del tablero</td><td>front-tablero</td></tr><tr><td><code>PUERTO_RADICACION</code></td><td>Puerto público de radicación</td><td>front-radicacion</td></tr><tr><td><code>PUERTO_ADMIN</code></td><td>Puerto público de admin</td><td>front-admin</td></tr></tbody></table>
+<h3>9.5. Despliegue</h3>
+
+<pre><code class="language-bash"># 1. Clonar con submódulos
+<p>git clone --recurse-submodules https://github.com/mininterior-iniciativas/MININTERIOR---INICIATIVAS.git</p>
+
+<h1>2. Configurar</h1>
+<p>cp .env.example .env</p>
+<h1>Editar .env con valores reales</h1>
+
+<h1>3. Levantar</h1>
+<p>docker compose up -d --build</p>
+
+<h1>4. Verificar</h1>
+<p>curl https://mininterior-iniciativas.fabricasoftware.co        # Tablero</p>
+<p>curl https://mininterior-iniciativas.fabricasoftware.co/api/salud  # Gateway</p>
+</code></pre>
+
+<hr/>
+
+<h2>10. Entornos</h2>
+
+<h3>Desarrollo (local)</h3>
+
+<pre><code class="language-bash"># Solo la base
+<p>docker compose -f docker-compose.dev.yml up -d</p>
+
+<h1>Cada servicio en caliente</h1>
+<p>cd ms-autenticacion && npm install && npm run dev</p>
+<p>cd front-tablero && npm install && npm run dev</p>
+</code></pre>
+
+<ul><li>MySQL en <code>127.0.0.1:3306</code></li><li>Migrador automático al levantar</li><li>Hot reload en todos los servicios y frontends</li></ul>
+<h3>Producción</h3>
+
+<ul><li><code>docker compose up -d --build</code> desde la raíz</li><li>Migrador ejecuta las 18 migraciones y termina</li><li>Todos los contenedores con <code>restart: unless-stopped</code></li><li>Contenedores node corren como <code>USER node</code> (sin root)</li></ul>
+<h3>Script Windows (desarrollo rápido)</h3>
+
+<pre><code class="language-powershell">.\start_all.ps1          # Levanta base + todos los servicios + abre navegador
+<p>.\start_all.ps1 -Rebuild # Reconstruye contenedores antes de levantar</p>
+<p>.\stop_all.ps1           # Detiene todo</p>
+</code></pre>
+
+<hr/>
+
+<h2>11. Pruebas</h2>
+
+<h3>11.1. Pruebas de frontend</h3>
+
+<pre><code class="language-bash">cd front-tablero
+<p>npm run prueba          # Contraste + build de pruebas + 7 suites</p>
+<p>npm run contraste       # Solo contraste WCAG AA (no necesita build)</p>
+</code></pre>
+
+<table><thead><tr><th>Suite</th><th>Comprobaciones</th><th>Qué valida</th></tr></thead><tbody><tr><td><code>prueba-humo.mjs</code></td><td>22</td><td>Monta, navega, dibuja el diseño aprobado</td></tr><tr><td><code>prueba-a11y.mjs</code></td><td>31</td><td>Accesibilidad: landmarks, ARIA, nombres, jerarquía</td></tr><tr><td><code>prueba-foco.mjs</code></td><td>14</td><td>Diálogos: inert, trampa de foco, Escape</td></tr><tr><td><code>prueba-url.mjs</code></td><td>10</td><td>Estado en la URL: pestaña, consulta</td></tr><tr><td><code>prueba-tiempo.mjs</code></td><td>13</td><td>Tiempo visible, jerarquía de la fila</td></tr><tr><td><code>prueba-filtros.mjs</code></td><td>23</td><td>Tarjetas KPI como filtros</td></tr><tr><td><code>prueba-entorno.mjs</code></td><td>2+</td><td>Monta con y sin URL navegable</td></tr></tbody></table>
+<p>Las suites corren en <strong>jsdom</strong> contra un bundle IIFE (<code>dist-test/app.js</code>),</p>
+<p>sin necesidad de API ni base levantadas.</p>
+
+<h3>11.2. Verificación de contraste</h3>
+
+<pre><code class="language-bash">node scripts/verificar-contraste.js
+</code></pre>
+
+<p>Comprueba 31 pares de colores contra WCAG 2.1 AA. <strong>Falla si alguno baja</p>
+<p>del mínimo.</strong> Es obligación legal (Resolución 1519 de 2020, MinTIC).</p>
+
+<h3>11.3. Verificación del flujo</h3>
+
+<pre><code class="language-bash">node scripts/verificar-flujo.js    # Requiere MySQL levantado
+</code></pre>
+
+<p>30 aserciones sobre:</p>
+<ul><li>Flujo de estados (avanzar, devolver, rechazar)</li><li>Permisos (positivos y negativos)</li><li>Creación de cuentas y asignación de roles</li></ul>
+<h3>11.4. Prueba end-to-end</h3>
+
+<pre><code class="language-bash">node scripts/prueba-e2e.mjs       # Requiere toda la plataforma levantada
+</code></pre>
+
+<p>Sondea humo + contrato del gateway + flujo completo.</p>
+
+<hr/>
+
+<h2>12. Decisiones arquitectónicas</h2>
+
+<h3>DA-01: Base compartida vs. base por servicio</h3>
+
+<strong>Decisión:</strong> una sola base compartida por los 6 microservicios.
+
+<strong>Razón:</strong> las migraciones hacen <code>ALTER</code> cruzados entre dominios, y la
+<p>tabla de sesiones debe ser la misma. Separar rompe la integridad</p>
+<p>referencial y la autenticación.</p>
+
+<strong>Camino a futuro:</strong> mover sesiones a Redis, desacoplar esquema por
+<p>dominios.</p>
+
+<h3>DA-02: Procedimientos almacenados como capa de datos</h3>
+
+<strong>Decisión:</strong> toda la lógica de datos en MySQL stored procedures.
+
+<strong>Razón:</strong> inmunidad a inyección SQL por construcción. La API es un proxy
+<p>delgado que pasa parámetros.</p>
+
+<h3>DA-03: Permisos vs. roles para autorización</h3>
+
+<strong>Decisión:</strong> la autorización se verifica por permiso, no por nombre de
+<p>rol.</p>
+
+<strong>Razón:</strong> los roles son configurables desde la interfaz. Si la
+<p>autorización dependiera del nombre del rol, cambiar un rol rompería el</p>
+<p>acceso.</p>
+
+<h3>DA-04: Cookie compartida entre servicios</h3>
+
+<strong>Decisión:</strong> los 6 microservicios usan el mismo <code>SESSION_SECRET</code> y la
+<p>misma tabla <code>sesiones</code>.</p>
+
+<strong>Razón:</strong> la cookie firmada en ms-autenticacion la deben validar los
+<p>demás. Sin esto, cada petición al gateway requeriría un token diferente.</p>
+
+<h3>DA-05: Migraciones nunca se editan</h3>
+
+<strong>Decisión:</strong> una migración ya aplicada nunca se modifica.
+
+<strong>Razón:</strong> producción puede tener datos que dependen de la estructura
+<p>creada por esa migración. La siguiente migración corrige o extiende.</p>
+
+<h3>DA-06: Sin concatenación de SQL</h3>
+
+<strong>Decisión:</strong> la API nunca arma SQL. Solo <code>pool.query('CALL sp_x(?, ?)')</code>.
+
+<strong>Razón:</strong> la inyección SQL no depende de disciplina sino de estructura.
+<p>Si no hay concatenación, no hay vector.</p>
+
+<hr/>
+
+<h2>13. Pendientes y hoja de ruta</h2>
+
+<table><thead><tr><th>Item</th><th>Estado</th><th>Impacto</th></tr></thead><tbody><tr><td>Sesiones en Redis</td><td>Reservado (Redis ya en producción)</td><td>Permite escalar horizontalmente</td></tr><tr><td>Envío real de correo</td><td><code>ms-notificaciones</code> listo, falta SMTP real</td><td>Recuperación de contraseña por email</td></tr><tr><td><code>estado_visibilidad</code></td><td>Tabla en la base, sin uso en consultas</td><td>Control de quién ve qué por estado</td></tr><tr><td>Historial de edición de contenido</td><td>Parcial (solo objeto y alcance)</td><td>Auditoría completa</td></tr><tr><td>HTTPS / TLS</td><td>Pendiente de certificado</td><td>Obligatorio para producción</td></tr><tr><td>CI/CD</td><td>Sin pipeline automatizado</td><td>Despliegue manual</td></tr><tr><td>Monitoreo / logging centralizado</td><td>Sin implementar</td><td>Trazabilidad en producción</td></tr><tr><td>Backup automatizado de la base</td><td>Sin implementar</td><td>Continuidad del negocio</td></tr></tbody></table>
+<hr/>
+
+<blockquote><strong>Documento preparado por:</strong> Equipo de desarrollo<br/><strong>Para:</strong> Viceministerio para el Diálogo Social y los Derechos Humanos<br/><strong>Fecha:</strong> 28 de agosto de 2026<br/><strong>Clasificación:</strong> Uso interno</blockquote>
+
+</body>
+</html>
