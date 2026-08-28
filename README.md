@@ -7,95 +7,110 @@ Interior de Colombia.
 Seis direcciones registran sus iniciativas, las mueven por un flujo de estados
 configurable y adjuntan la documentación soporte como enlaces al repositorio
 institucional. El despacho del Viceministro consulta el estado consolidado.
+Un canal público permite a la ciudadanía radicar propuestas y consultar el
+avance de su trámite por código.
 
-## Levantarlo
+> **Clasificación: uso institucional restringido.** Los datos incluyen trámites
+> de consulta previa y de garantías para personas defensoras de derechos
+> humanos. Los repositorios son privados.
 
-Guía completa en **`docs/instalacion.md`** — tres caminos: Docker, manual y
-Antigravity. Lo esencial:
+## Arquitectura
 
-**Con Docker**, todo incluido:
+Plataforma de microservicios repartida en **12 repositorios** (submódulos de
+este repositorio agregador):
+
+| Grupo | Repositorios |
+|---|---|
+| Frontends (React + Vite) | `front-tablero`, `front-radicacion`, `front-admin` |
+| Puerta de entrada | `api-gateway` |
+| Microservicios (Node/Express) | `ms-autenticacion`, `ms-iniciativas`, `ms-radicacion`, `ms-flujo-estados`, `ms-notificaciones`, `ms-administracion` |
+| Infraestructura y compartidos | `infra-iniciativas` (orquestación), `tipos-compartidos` |
+
+Los seis microservicios comparten **una sola base MySQL**
+(`iniciativas_legislativas`) y el almacén de sesión. El API Gateway es el único
+punto de entrada: valida CORS, limita tráfico y enruta a cada microservicio.
+
+```
+Navegador ─▶ Nginx (frontend) ─▶ API Gateway ─▶ ms-* ─▶ MySQL
+                                                   └────▶ (Redis, reservado)
+```
+
+## Cómo levantarlo
+
+**Producción / demostración (todo en Docker):**
 
 ```bash
-cp .env.example .env              # completar contraseñas y SESSION_SECRET
+cp .env.example .env         # completar contraseñas, SESSION_SECRET, SERVICIO_TOKEN
 docker compose up -d --build
-docker compose exec api npm run crear-usuario     # primer administrador
-./scripts/verificar-instalacion.sh
 ```
 
-Las quince migraciones se aplican solas al crear el volumen. Solo sale al host
-el puerto de Nginx (`PUERTO_PUBLICO`, 8080 por omisión).
+El `docker compose.yml` de la raíz incluye la orquestación real de
+`infra-iniciativas`. Al arrancar, un servicio `migrador` aplica solo las
+migraciones en orden y la plataforma queda lista. Se publican los tres
+frontends (8080 tablero, 8081 radicación, 8082 admin). Guía completa y para
+servidores: **`docs/GUIA_DESPLIEGUE_CLOUD.md`**.
 
-**Con MySQL ya instalado**, un comando hace la base completa:
+En Windows, el mismo resultado con:
 
-```bash
-./scripts/instalar-base-de-datos.sh    # crea base, migra y crea el usuario
-cd api && npm install && npm run crear-usuario && npm start
-cd web && npm install && npm run dev
+```powershell
+.\start_all.ps1              # plataforma completa;  -Dev = solo la base para desarrollo
 ```
 
-**Para desarrollo**, solo la base en contenedor:
-
-```bash
-docker compose -f docker-compose.dev.yml up -d
-```
-
-## Estructura
-
-```
-db/           Migraciones SQL numeradas. Toda la lógica de datos.
-api/          Express. Solo llama procedimientos almacenados.
-web/          React + Vite + TypeScript.
-docker/       Dockerfiles y configuración de Nginx.
-scripts/      Instalador de la base de datos y verificador.
-referencia/   El frontend original sin React. Registro, no autoridad.
-docs/         Migraciones, despliegue, pendientes y scripts de prueba.
-.agents/      Reglas y flujos de trabajo para agentes.
-AGENTS.md     Instrucciones permanentes. Empezar por aquí.
-```
+**Desarrollo (base en contenedor, servicios en caliente):** ver
+**`INSTALACION.md`**.
 
 ## Cómo está construido
 
 **La API no arma SQL.** Cada endpoint hace `CALL sp_x(?, ?)` con parámetros
-ligados. No hay concatenación de cadenas en ninguna parte, así que el sistema
-es inmune a inyección SQL por construcción y no por disciplina.
+ligados; no hay concatenación de cadenas, así que el sistema es inmune a
+inyección SQL por construcción, no por disciplina.
 
-**El flujo de estados es configurable.** Los estados, las transiciones
-permitidas, quién puede ejecutar cada una y quién alcanza a ver una iniciativa
-en cada estado se administran desde la pantalla, no desde el código. Cada
-movimiento queda en `historial_iniciativa` con autor, fecha y motivo.
+**El flujo de estados es configurable.** Estados, transiciones permitidas,
+responsables y visibilidad se administran desde la pantalla, no desde el
+código. Cada movimiento queda en `historial_iniciativa` con autor, fecha y
+motivo.
 
 **Los roles son dinámicos, los permisos no.** Un permiso existe porque hay
 código que lo verifica, así que el catálogo se amplía por migración. Los roles
-los crea el administrador combinando permisos libremente.
+los crea el administrador combinando permisos libremente, y se resuelven contra
+la base en cada petición.
 
-**El diseño del tablero está bloqueado.** `web/src/tablero-aprobado.css` es el
-CSS de `referencia/tablero-aprobado.html` portado literalmente. Es el aspecto
-aprobado por el Viceministerio y no se modifica desde el código.
+**Autenticación robusta.** Sesión en cookie `httpOnly`, contraseñas con scrypt
+y comparación en tiempo constante, bloqueo por intentos, límite por IP,
+revocación de sesiones al cambiar la contraseña y defensa contra enumeración de
+cuentas.
 
-## Estado actual
+## Estado y calidad
 
-Funciona y está probado:
+El sistema está **completo y en funcionamiento**: los seis microservicios, el
+gateway y los tres frontends arrancan y operan de extremo a extremo (registro
+ciudadano → radicación → ingreso de funcionario → tablero → flujo de estados →
+exportación).
 
-- Las quince migraciones, idempotentes, con las guardas de flujo y roles.
-- Autenticación con sesión en cookie, contraseñas con scrypt, bloqueo por
-  intentos fallidos.
-- Propuestas sin sesión y autorregistro, con adopción de las propuestas
-  previas al crear la cuenta.
-- El tablero en React reproduciendo el diseño aprobado, con panel de flujo e
-  historial.
-- Las cuatro pantallas de administración: usuarios, roles, flujo y
-  estadísticas.
-
-**Lo que falta:** `web/src/api/cliente.ts` tiene `USAR_SIMULADO = true`. La
-interfaz corre contra un backend simulado en memoria porque los endpoints
-`/api/admin/*` que exponen las migraciones 06 y 07 todavía no están escritos.
-Ver `docs/pendientes.md`.
+Se realizó una **auditoría de calidad y seguridad** (seguridad, OWASP,
+carga/estrés y funcionamiento), con **21 de 24 hallazgos corregidos y
+verificados en ejecución**. Informe completo en **`docs/auditoria-qa.md`**.
+Hay integración continua (`.github/workflows/ci.yml`) que levanta la plataforma
+y corre una prueba extremo a extremo en cada cambio.
 
 ## Documentación
 
-- `docs/instalacion.md` — **empezar por aquí** para poner el sistema a andar.
-- `AGENTS.md` — instrucciones permanentes para agentes y personas nuevas.
-- `.agents/rules/` — arquitectura, diseño y accesibilidad, base de datos.
-- `docs/migraciones.md` — qué hace cada migración y cómo aplicarlas.
-- `docs/despliegue.md` — puesta en producción y verificación.
-- `docs/pendientes.md` — trabajo pendiente, en orden de dependencia.
+- **`docs/GUIA_DESPLIEGUE_CLOUD.md`** — despliegue en servidores, paso a paso. Para el equipo de operaciones.
+- **`INSTALACION.md`** — puesta en marcha local para desarrollo.
+- **`docs/auditoria-qa.md`** — informe de auditoría de calidad y seguridad.
+- **`docs/migraciones.md`** — qué hace cada migración y cómo se aplican.
+- Cada repositorio tiene su propio `README.md` con sus rutas y variables.
+
+## Estructura del repositorio
+
+```
+front-tablero/ front-radicacion/ front-admin/   Frontends React
+api-gateway/                                     Puerta de entrada
+ms-*/                                            Microservicios (src/ + migraciones/)
+infra-iniciativas/                               docker-compose de producción
+tipos-compartidos/                               Tipos TypeScript comunes
+docker-compose.yml                               Incluye la orquestación real
+docker-compose.dev.yml                           Base única para desarrollo
+scripts/                                          Pruebas y verificaciones (ver scripts/README.md)
+docs/                                             Guías, auditoría, migraciones
+```

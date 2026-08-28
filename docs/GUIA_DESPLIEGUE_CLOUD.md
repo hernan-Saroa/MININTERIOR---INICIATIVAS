@@ -191,7 +191,17 @@ DB_USER=iniciativas_app
 #   node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"
 SESSION_SECRET=<cadena_generada_64_caracteres>
 
+# ----- Token de Servicio (envío de correo) -----
+# OBLIGATORIO en producción: sin él, ms-notificaciones NO ARRANCA (falla
+# cerrado). Solo quien lo envíe en la cabecera x-servicio-token puede pedir
+# el envío de un correo, de modo que el servicio no es un relay abierto.
+# Generar con:
+#   node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+SERVICIO_TOKEN=<cadena_generada_43_caracteres>
+
 # ----- Dominio Oficial y CORS -----
+# Sin ORIGEN_PERMITIDO, los servicios no arrancan en producción (no se
+# permite reflejar cualquier origen). Acepta varios separados por comas.
 ORIGEN_PERMITIDO=https://iniciativas.mininterior.gov.co
 
 # ----- Puertos Públicos -----

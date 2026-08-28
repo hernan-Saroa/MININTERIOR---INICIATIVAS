@@ -1,5 +1,12 @@
 # Despliegue de la capa de autenticación
 
+> **Nota operativa puntual (histórica).** Describe cómo se activó la
+> autenticación sobre una instalación ya existente. Para el despliegue completo
+> y actual de la plataforma, ver **`docs/GUIA_DESPLIEGUE_CLOUD.md`**.
+
+---
+
+
 Guía para pasar el tablero de acceso abierto a acceso con correo y contraseña,
 sobre una instalación que ya está funcionando y con datos cargados.
 
