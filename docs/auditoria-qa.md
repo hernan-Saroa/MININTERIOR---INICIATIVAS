@@ -13,16 +13,17 @@ La plataforma **no arrancaba en ninguna de sus formas de despliegue**. La causa 
 
 El **código de aplicación es de buena calidad**: acceso a datos exclusivamente por procedimientos almacenados con parámetros ligados (sin inyección SQL), scrypt con comparación en tiempo constante, defensa contra fijación de sesión y contra enumeración por tiempo, neutralización de inyección CSV, y aislamiento por dirección correcto. El problema no es cómo está escrito cada servicio, sino cómo encajan entre sí.
 
-**Se corrigieron los 7 bloqueantes de arranque y los 13 hallazgos de alto riesgo (seguridad y funcionales)**, todos verificados en ejecución. Quedan reportados los de severidad media y baja.
+**Se corrigieron los 7 bloqueantes y prácticamente todos los hallazgos de seguridad y funcionamiento** (verificados en ejecución). Queda una decisión organizativa (F-02, frontend duplicado) y la parte de paginación de F-04, que requiere cambio coordinado con el frontend.
 
 | Severidad | Cantidad | Estado |
 |---|---|---|
-| 🔴 Crítica | 7 | Bloqueantes — **corregidos** |
+| 🔴 Crítica (arranque) | 7 | **Corregidos** |
 | 🔴 Crítica (seguridad) | 3 | **Corregidos** (S-01, S-02, S-03) |
 | 🟠 Alta (seguridad) | 4 | **Corregidos** (S-04, S-05, S-06, S-07) |
 | 🟠 Alta (funcional) | 2 | **Corregidos** (F-01, F-03) |
-| 🟡 Media | 5 | Reportados |
-| 🔵 Baja / calidad | 4 | Reportados |
+| 🟡 Media (seguridad) | 3 | **Corregidos** (S-08, S-09, S-10) |
+| 🟡 Media (funcional) | 2 | F-04 **parcial** (rate-limit corregido; paginación pendiente); F-02 decisión |
+| 🔵 Baja / calidad | 2 | **Corregidos** (S-11 backends, S-12) |
 
 ---
 
@@ -105,27 +106,32 @@ El login era genérico (401) salvo que, tras varios fallos, una cuenta **existen
 **Corrección aplicada:** (1) la cuenta bloqueada responde ahora el **mismo 401 genérico** y gasta el mismo tiempo (`gastarTiempo()`) que las demás ramas, sin oráculo por estado ni por latencia; (2) límite por IP con `express-rate-limit` en `/ingresar` (20/15 min, sin contar ingresos exitosos) y en la recuperación (10/15 min).
 **Verificado:** cuenta bloqueada e inexistente devuelven idéntico 401; 50 intentos desde una IP → 13 pasan y 37 se frenan con 429.
 
-### S-08 · Tokens de recuperación sin cota en memoria 🟡 (OWASP A07/DoS)
-`tokensRecuperacion` es un `Map` en memoria; las entradas caducadas solo se borran si alguien intenta usarlas, y el endpoint que las crea es anónimo.
-**Evidencia:** 500 solicitudes anónimas → 500 tokens retenidos, ninguno liberado. Con pocas cuentas objetivo se acumula sin límite. Además se pierden al reiniciar y no se comparten entre réplicas.
-**Remediación:** almacenar los tokens en la base (o Redis) con expiración, y purgar los vencidos periódicamente.
+### S-08 · Tokens de recuperación sin cota en memoria 🟡 (OWASP A07/DoS) — CORREGIDO
+`tokensRecuperacion` era un `Map` en memoria; las entradas caducadas solo se borraban si alguien intentaba usarlas, y el endpoint que las crea es anónimo.
+**Evidencia:** 500 solicitudes anónimas → 500 tokens retenidos, ninguno liberado.
+**Corrección aplicada:** `purgarTokens()` se ejecuta en cada solicitud, elimina los vencidos y acota el mapa a 5.000 (descarta los más antiguos si se excede). Sigue siendo en memoria; para varias réplicas, moverlo a la base/Redis es el paso siguiente (documentado en el código).
+**Verificado:** el flujo de recuperación sigue funcionando; la purga se invoca en cada creación.
 
-### S-09 · Inyección de origen en el enlace de recuperación 🟡 (OWASP A07)
-El enlace se construye con `req.get('origin')`, controlado por el cliente.
-**Evidencia:** con `Origin: https://mininterior-gov-co.sitio-falso.example`, el enlace generado apuntó a ese dominio. Hoy solo va al log, pero `ms-notificaciones` ya existe: cuando se conecte el correo, esto es toma de cuenta por phishing.
-**Remediación:** construir el enlace con una base de confianza del servidor (`ORIGEN_PERMITIDO`), nunca con la cabecera `Origin`.
+### S-09 · Inyección de origen en el enlace de recuperación 🟡 (OWASP A07) — CORREGIDO
+El enlace se construía con `req.get('origin')`, controlado por el cliente.
+**Evidencia:** con `Origin: https://mininterior-gov-co.sitio-falso.example`, el enlace apuntaba a ese dominio.
+**Corrección aplicada:** el enlace se construye desde la primera entrada de `ORIGEN_PERMITIDO` (base de confianza del servidor), nunca desde la cabecera `Origin`.
+**Verificado:** con `Origin` falso, el enlace generado apunta a `http://localhost:5173` (el configurado), no al dominio del atacante.
 
-### S-10 · Sin cabeceras de seguridad 🟡 (OWASP A05)
-Ningún servicio ni los tres `nginx.conf` emiten `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options` ni `Referrer-Policy`. Verificado ausentes.
-**Remediación:** añadir `helmet` en los servicios (o las cabeceras en nginx), con CSP y `X-Frame-Options: DENY` (protege contra clickjacking).
+### S-10 · Sin cabeceras de seguridad 🟡 (OWASP A05) — CORREGIDO
+Ningún servicio ni los tres `nginx.conf` emitían cabeceras de seguridad.
+**Corrección aplicada:** los 7 backends (6 MS + gateway) fijan `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy` y desactivan `X-Powered-By`. Los tres `nginx.conf` (superficie HTML) añaden además `Permissions-Policy` y dejan **listas pero comentadas** HSTS (exige HTTPS) y una CSP —esta última debe validarse en el navegador con el build real antes de activarla, porque una CSP mal ajustada rompe el SPA—.
+**Verificado:** las respuestas de API (directas y vía gateway) traen las tres cabeceras y ya no exponen `X-Powered-By`.
 
-### S-11 · Contenedores como root 🔵 (OWASP A05)
-Ningún Dockerfile define `USER`; los 10 contenedores corren como root.
-**Remediación:** añadir un usuario sin privilegios (`USER node` en los backends; los frontends nginx, usuario no-root).
+### S-11 · Contenedores como root 🔵 (OWASP A05) — CORREGIDO (backends)
+Ningún Dockerfile definía `USER`; los 10 contenedores corrían como root.
+**Corrección aplicada:** los 7 Dockerfiles de backend añaden `USER node` (usuario sin privilegios de `node:20-alpine`; los puertos 3000-3006 no requieren root).
+**Pendiente (documentado):** los 3 frontends nginx requieren la imagen `nginxinc/nginx-unprivileged` + cambiar `listen 80` a `8080` y el mapeo de puertos del compose. Se deja fuera de esta tanda por el riesgo de romper el mapeo; es un cambio mecánico acotado.
 
-### S-12 · Dependencia con vulnerabilidad conocida 🔵 (OWASP A06)
-`ms-notificaciones` declara `nodemailer ^6.9.0`; `npm audit` reporta 1 vulnerabilidad **alta** (inyección de comandos SMTP / CRLF, entre otras). El resto de backends: 0 vulnerabilidades. Frontends: 0.
-**Remediación:** actualizar `nodemailer` a una versión ≥ 9.0.6.
+### S-12 · Dependencia con vulnerabilidad conocida 🔵 (OWASP A06) — CORREGIDO
+`ms-notificaciones` declaraba `nodemailer ^6.9.0`; `npm audit` reportaba 1 vulnerabilidad alta (inyección de comandos SMTP / CRLF).
+**Corrección aplicada:** actualizado a `nodemailer ^9.0.6` y lockfile regenerado.
+**Verificado:** `npm audit` → 0 vulnerabilidades; el envío de correo sigue funcionando (nodemailer 9.0.6, correo capturado en el SMTP de laboratorio).
 
 ---
 
@@ -139,9 +145,9 @@ Ningún Dockerfile define `USER`; los 10 contenedores corren como root.
 - `start_all.ps1` por defecto levanta la plataforma completa en Docker (el camino probado) y valida que exista `.env`; `-Dev` levanta solo la base migrada para correr los servicios en caliente.
 **Verificado:** `docker compose config` válido en ambos composes de la raíz (el `include` expone los 13 servicios y propaga las variables); los scripts PowerShell parsean sin error.
 
-### F-02 · Frontend duplicado (`front-tablero` = `front-admin`) 🟡
+### F-02 · Frontend duplicado (`front-tablero` = `front-admin`) 🟡 — DECISIÓN PENDIENTE
 `front-tablero/src` y `front-admin/src` son **idénticos byte a byte**: dos repositorios y dos contenedores para la misma aplicación (mismo `<title>`). Duplica mantenimiento y superficie de despliegue.
-**Remediación:** decidir si `front-admin` debe divergir (y entonces recortarlo a lo suyo) o eliminarlo y servir la misma app.
+**Por qué no se corrige aquí:** eliminar un submódulo/repositorio o hacer divergir una aplicación es una decisión de producto irreversible, no un arreglo de auditoría. Requiere saber si `front-admin` debe ser una app distinta (y entonces recortarla a lo suyo) o desaparecer (y servir la misma app en otra ruta/puerto). Queda para decisión del equipo.
 
 ### F-03 · Sin pruebas automatizadas ni CI 🟠 — CORREGIDO (mínimo viable)
 Ningún `package.json` definía script `test`; no había `.github/`, `.gitlab-ci.yml` ni `Jenkinsfile`. Nada impedía que una regresión como B-04 (gateway) o B-05 (registro) llegara a producción.
@@ -151,7 +157,7 @@ Ningún `package.json` definía script `test`; no había `.github/`, `.gitlab-ci
 **Verificado:** contra la plataforma corregida, 8/8 comprobaciones pasan (exit 0). Contra un gateway con el bug original de B-04, la prueba **falla** el contrato (6/8, exit 1) — confirma que detecta la regresión.
 **Siguiente paso (no bloqueante):** pruebas unitarias por servicio y un flujo autenticado con roles sembrados; hoy la suite cubre el camino público y de contrato, que es donde estaban las regresiones caras.
 
-### F-04 · Capacidad — medida con carga real 🟡
+### F-04 · Capacidad — medida con carga real 🟡 — CORREGIDA en parte
 Prueba con `autocannon` sobre el entorno reconstruido (20 núcleos, MySQL en contenedor, 5.000 iniciativas sembradas), atacando los microservicios directamente para medir su capacidad real (el rate-limit del gateway tapa cualquier medición a través de él).
 
 | Prueba | Endpoint | Conc. | req/s | p50 | p99 | Observación |
@@ -169,7 +175,9 @@ Hallazgos concretos:
 - **Costo de login:** sin límite por IP (ver S-07), cada intento cuesta un `scrypt` (~40-60 ms de CPU); es un vector de agotamiento de CPU además de fuerza bruta.
 - **Estabilidad:** ningún servicio cayó ni registró errores bajo carga — degradan, no colapsan.
 
-**Remediación:** paginar `GET /api/iniciativas` (o exigir `direccion_id`); `trust proxy` en el gateway y subir/afinar su límite; revisar `connectionLimit` bajo la carga esperada; límite por IP en el login.
+**Corrección aplicada:** se añadió `app.set('trust proxy', 1)` al gateway, así que el rate-limit pasa de ser efectivamente **global** (un cliente dejaba a todos en 429) a keyear por la IP real del cliente. El límite por IP del login ya se resolvió en S-07.
+**Pendiente (requiere cambio coordinado con el frontend):** paginar `GET /api/iniciativas`. Hoy el frontend descarga la lista completa y filtra/exporta en cliente, así que paginar en el servidor exige tocar también el frontend; por eso no se aplica en esta tanda. También conviene revisar `connectionLimit` bajo la carga esperada.
+**Verificado:** el gateway ya emite el keyeo por IP (cabeceras `RateLimit-*` con `trust proxy` activo).
 
 ---
 
