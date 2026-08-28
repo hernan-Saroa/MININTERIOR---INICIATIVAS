@@ -1,10 +1,15 @@
 # =====================================================================
-# Desarrollo. MySQL en contenedor, API y web corriendo con recarga en
-# caliente desde el disco.
+# Desarrollo. Levanta SOLO la base (una sola, ya migrada) para trabajar
+# los microservicios en caliente desde el disco:
 #
 #   docker compose -f docker-compose.dev.yml up -d
-#   cd api && npm install && npm run dev
-#   cd web && npm install && npm run dev
+#   cd ms-autenticacion && npm install && npm run dev   # y cada MS
+#   cd front-tablero    && npm install && npm run dev
+#
+# La versión anterior montaba ./db en /docker-entrypoint-initdb.d, carpeta
+# retirada al pasar a multi-repositorio, así que la base nacía vacía. Ahora
+# un servicio `migrador-dev` aplica las 17 migraciones (repartidas en los
+# ms-*/migraciones) en orden numérico, deduplicando la 06. Ver F-01.
 # =====================================================================
 
 services:
@@ -15,21 +20,43 @@ services:
       MYSQL_DATABASE: iniciativas_legislativas
       MYSQL_USER: iniciativas_app
       MYSQL_PASSWORD: desarrollo
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
+    command: [--character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci]
     ports:
-      # Solo en desarrollo: permite conectar un cliente desde el host
+      # Solo en desarrollo: permite conectar un cliente y los MS locales.
       - "127.0.0.1:3306:3306"
     volumes:
       - datos_mysql_dev:/var/lib/mysql
-      - ./db:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-pdesarrollo"]
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 40s
+
+  migrador-dev:
+    image: mysql:8.4
+    depends_on:
+      mysql: { condition: service_healthy }
+    environment:
+      MYSQL_PWD: desarrollo
+    volumes:
+      - ./ms-iniciativas/migraciones:/mig/iniciativas:ro
+      - ./ms-autenticacion/migraciones:/mig/autenticacion:ro
+      - ./ms-radicacion/migraciones:/mig/radicacion:ro
+      - ./ms-flujo-estados/migraciones:/mig/flujo:ro
+      - ./ms-administracion/migraciones:/mig/administracion:ro
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        echo "Aplicando migraciones (dev)…"
+        for f in $$(for p in /mig/*/*.sql; do echo "$$(basename $$p)|$$p"; done | sort | awk -F'|' '!v[$$1]++{print $$2}'); do
+          echo "  -> $$(basename $$f)"
+          mysql --default-character-set=utf8mb4 -h mysql -u root iniciativas_legislativas < "$$f"
+        done
+        echo "Base de desarrollo lista."
+    restart: "no"
 
 volumes:
   datos_mysql_dev:

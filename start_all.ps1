@@ -1,12 +1,26 @@
 param(
     [switch]$Rebuild,
-    [switch]$Docker
+    [switch]$Dev
 )
 
 <#
 .SYNOPSIS
-    Script de despliegue para el Sistema de Iniciativas Legislativas (Arquitectura Multi-Repositorio).
+    Arranque del Sistema de Iniciativas Legislativas (arquitectura multi-repositorio).
     Ministerio del Interior - Republica de Colombia
+
+.DESCRIPTION
+    Por defecto levanta la PLATAFORMA COMPLETA en Docker (3 frontends + API
+    Gateway + 6 microservicios + base migrada), que es la forma probada de
+    correrla. La base de datos se migra sola al arrancar (servicio migrador).
+
+      .\start_all.ps1            # plataforma completa en Docker
+      .\start_all.ps1 -Rebuild   # reconstruye las imagenes
+      .\start_all.ps1 -Dev       # modo desarrollo (ver abajo)
+
+    -Dev levanta solo la base (ya migrada) y deja los microservicios y el
+    frontend para correrlos en caliente con 'npm run dev'. Antes, el arranque
+    por defecto solo levantaba el Vite del tablero y ningun backend, asi que
+    la aplicacion no funcionaba. Ver docs/auditoria-qa.md (F-01).
 #>
 
 $Raiz = $PSScriptRoot
@@ -19,95 +33,77 @@ Write-Host '  Ministerio del Interior - Republica de Colombia' -ForegroundColor 
 Write-Host '=================================================================' -ForegroundColor Cyan
 Write-Host ''
 
+# Comprobacion de requisitos comunes
+try {
+    docker info *> $null
+    if ($LASTEXITCODE -ne 0) { throw 'docker-no-disponible' }
+} catch {
+    Write-Host '[ERROR] Docker no esta disponible. Inicie Docker Desktop y reintente.' -ForegroundColor Red
+    exit 1
+}
+
 # ---------------------------------------------------------------------
-# Modo Docker (Infraestructura de Microservicios)
+# Modo DESARROLLO: solo la base migrada; los servicios se corren a mano.
 # ---------------------------------------------------------------------
-if ($Docker) {
-    Write-Host '[MODO DOCKER] Desplegando arquitectura de microservicios con infra-iniciativas...' -ForegroundColor Magenta
-    Push-Location "$Raiz\infra-iniciativas"
-    if ($Rebuild) {
-        docker compose build --no-cache
+if ($Dev) {
+    Write-Host '[MODO DEV] Levantando base de datos de desarrollo (con migraciones)...' -ForegroundColor Magenta
+    Push-Location $Raiz
+    try {
+        docker compose -f 'docker-compose.dev.yml' up -d
+    } finally {
+        Pop-Location
     }
-    docker compose up -d --force-recreate
-    Pop-Location
-    Start-Sleep -Seconds 3
-    Start-Process 'http://localhost:8080'
     Write-Host ''
-    Write-Host '[OK] Microservicios desplegados en Docker (Tablero: http://localhost:8080).' -ForegroundColor Green
+    Write-Host '[OK] Base de desarrollo lista en 127.0.0.1:3306 (base: iniciativas_legislativas).' -ForegroundColor Green
+    Write-Host ''
+    Write-Host 'Ahora, en terminales separadas, arranque cada servicio en caliente:' -ForegroundColor Yellow
+    Write-Host '  cd ms-autenticacion  ; npm install ; npm run dev   (y cada ms-*)' -ForegroundColor Gray
+    Write-Host '  cd api-gateway       ; npm install ; npm run dev' -ForegroundColor Gray
+    Write-Host '  cd front-tablero     ; npm install ; npm run dev' -ForegroundColor Gray
+    Write-Host ''
+    Write-Host 'Cada servicio necesita su .env (copie el .env.example y complete DB_*,' -ForegroundColor Gray
+    Write-Host 'SESSION_SECRET y ORIGEN_PERMITIDO). Ver INSTALACION.md.' -ForegroundColor Gray
     Write-Host ''
     exit 0
 }
 
 # ---------------------------------------------------------------------
-# 0. Limpiar procesos previos
+# Modo por defecto: plataforma completa en Docker.
 # ---------------------------------------------------------------------
-Write-Host '  > Verificando y limpiando procesos previos...' -ForegroundColor Gray
-Get-Process -Name 'node' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Write-Host '[DOCKER] Desplegando la plataforma completa...' -ForegroundColor Magenta
 
-if ($Rebuild) {
-    Write-Host '  > Limpiando cache de Vite...' -ForegroundColor Magenta
-    Remove-Item -Path "$Raiz\front-tablero\dist" -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item -Path "$Raiz\front-tablero\node_modules\.vite" -Recurse -Force -ErrorAction SilentlyContinue
+if (-not (Test-Path "$Raiz\.env")) {
+    Write-Host '[ERROR] Falta el archivo .env en la raiz.' -ForegroundColor Red
+    Write-Host '        Copie .env.example a .env y complete DB_ROOT_PASSWORD, DB_PASSWORD,' -ForegroundColor Gray
+    Write-Host '        SESSION_SECRET, SERVICIO_TOKEN y ORIGEN_PERMITIDO.' -ForegroundColor Gray
+    exit 1
 }
 
-# ---------------------------------------------------------------------
-# 1. Base de Datos MySQL
-# ---------------------------------------------------------------------
-Write-Host ''
-Write-Host '[1/3] Verificando entorno de base de datos...' -ForegroundColor Cyan
+Push-Location $Raiz
 try {
-    $dockerCheck = docker info 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        docker compose -f "$Raiz\docker-compose.dev.yml" up -d 2>$null
-        Write-Host '  [OK] Base de datos verificada.' -ForegroundColor Green
+    if ($Rebuild) {
+        Write-Host '  > Reconstruyendo imagenes (--no-cache)...' -ForegroundColor Gray
+        docker compose build --no-cache
     }
-} catch {
-    Write-Host '  [!] Continuando...' -ForegroundColor Gray
-}
-
-# ---------------------------------------------------------------------
-# 2. Dependencias de Front-Tablero
-# ---------------------------------------------------------------------
-Write-Host ''
-Write-Host '[2/3] Verificando dependencias del Tablero...' -ForegroundColor Cyan
-
-if (-not (Test-Path "$Raiz\front-tablero\node_modules") -or $Rebuild) {
-    Write-Host '  > Instalando dependencias de front-tablero...' -ForegroundColor Gray
-    Push-Location "$Raiz\front-tablero"
-    npm.cmd install
-    Pop-Location
-}
-Write-Host '  [OK] Dependencias listas.' -ForegroundColor Green
-
-# ---------------------------------------------------------------------
-# 3. Compilación Inicial y Arranque
-# ---------------------------------------------------------------------
-Write-Host ''
-Write-Host '[3/3] Compilando e iniciando frontend modular (front-tablero)...' -ForegroundColor Cyan
-Push-Location "$Raiz\front-tablero"
-try {
-    npm.cmd run build
-    Write-Host '  [OK] Compilacion completada con exito (Build Successfully).' -ForegroundColor Green
+    docker compose up -d --build
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host '[ERROR] docker compose fallo. Revise la salida anterior.' -ForegroundColor Red
+        exit 1
+    }
 } finally {
     Pop-Location
 }
 
-# Abrir el navegador en 2 segundos
-Start-Sleep -Seconds 2
-Start-Process 'http://localhost:5173'
+Start-Sleep -Seconds 3
+Start-Process 'http://localhost:8080'
 
 Write-Host ''
 Write-Host '=================================================================' -ForegroundColor Green
-Write-Host '  ✓ SISTEMA MODULAR DESPLEGADO Y ACTIVO EN VIVO' -ForegroundColor Green
+Write-Host '  PLATAFORMA DESPLEGADA' -ForegroundColor Green
 Write-Host '=================================================================' -ForegroundColor Green
-Write-Host '  * Tablero Web:   http://localhost:5173 (front-tablero)' -ForegroundColor White
-Write-Host '  * Arquitectura:  12 Repositorios Modulares' -ForegroundColor White
+Write-Host '  * Tablero:     http://localhost:8080' -ForegroundColor White
+Write-Host '  * Radicacion:  http://localhost:8081' -ForegroundColor White
+Write-Host '  * Admin:       http://localhost:8082' -ForegroundColor White
+Write-Host '  Para detener:  .\stop_all.ps1' -ForegroundColor Gray
 Write-Host '=================================================================' -ForegroundColor Green
-Write-Host 'Vite esta corriendo y escuchando cambios en esta consola.' -ForegroundColor Yellow
-Write-Host 'Deje esta ventana abierta para mantener el sitio activo.' -ForegroundColor Yellow
-Write-Host 'Para detenerlo presione Ctrl+C o ejecute .\stop_all.ps1' -ForegroundColor Gray
 Write-Host ''
-
-Push-Location "$Raiz\front-tablero"
-npm.cmd run dev -- --host 0.0.0.0 --port 5173
-Pop-Location

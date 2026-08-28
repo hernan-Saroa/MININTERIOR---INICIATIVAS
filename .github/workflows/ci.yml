@@ -1,0 +1,69 @@
+name: CI — plataforma completa
+
+# Levanta toda la plataforma en Docker y corre la prueba end-to-end contra
+# ella. Es lo mínimo para que una regresión como la del gateway (404 en todo
+# el tráfico) o la del autorregistro (500) no llegue a la rama principal.
+#
+# Nota: este repo usa submódulos (los 12 repositorios). El checkout los trae
+# de forma recursiva; si alguno es privado, configure un token con acceso en
+# `secrets.SUBMODULES_TOKEN` y descomente la línea `token:` de abajo.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout (con submódulos)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          # token: ${{ secrets.SUBMODULES_TOKEN }}   # si los submódulos son privados
+
+      - name: Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generar .env de prueba
+        run: |
+          cat > .env <<'EOF'
+          DB_ROOT_PASSWORD=ci_root_pw
+          DB_USER=iniciativas_app
+          DB_PASSWORD=ci_app_pw
+          SESSION_SECRET=secreto-de-integracion-continua-solo-para-ci
+          SERVICIO_TOKEN=token-de-servicio-ci
+          ORIGEN_PERMITIDO=http://localhost:8080
+          PUERTO_TABLERO=8080
+          PUERTO_RADICACION=8081
+          PUERTO_ADMIN=8082
+          EOF
+
+      - name: Levantar la plataforma
+        run: docker compose up -d --build
+
+      - name: Esperar a que el gateway responda
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8080/api/salud >/dev/null 2>&1; then
+              echo "Gateway arriba (intento $i)"; exit 0
+            fi
+            sleep 5
+          done
+          echo "El gateway no respondió a tiempo"; exit 1
+
+      - name: Prueba end-to-end
+        run: node scripts/prueba-e2e.mjs
+
+      - name: Logs si algo falló
+        if: failure()
+        run: docker compose logs --tail=120
+
+      - name: Apagar
+        if: always()
+        run: docker compose down -v
