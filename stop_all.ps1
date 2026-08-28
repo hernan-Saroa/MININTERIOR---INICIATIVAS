@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Script para detener todos los servicios del Sistema de Iniciativas Legislativas.
+    Detiene todos los servicios del Sistema de Iniciativas Legislativas.
 #>
 
 Write-Host "Deteniendo servicios de Iniciativas Legislativas..." -ForegroundColor Cyan
@@ -8,19 +8,18 @@ Write-Host "Deteniendo servicios de Iniciativas Legislativas..." -ForegroundColo
 $Raiz = $PSScriptRoot
 if (-not $Raiz) { $Raiz = Get-Location }
 
-# 1. Detener procesos node en puertos 3000 y 5173
-Write-Host "  > Deteniendo procesos Node.js locales..." -ForegroundColor Gray
+# 1. Detener todos los procesos Node.js
+Write-Host "  > Deteniendo procesos Node.js..." -ForegroundColor Gray
 Get-Process -Name "node" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 
-# 2. Detener la plataforma en Docker (modo por defecto y modo dev)
+# 2. Detener contenedores Docker
 try {
-    Write-Host "  > Deteniendo contenedores..." -ForegroundColor Gray
-    Push-Location $Raiz
-    docker compose down 2>$null
-    docker compose -f "docker-compose.dev.yml" down 2>$null
-    Pop-Location
+    Write-Host "  > Deteniendo contenedores Docker..." -ForegroundColor Gray
+    docker compose -f "$Raiz/docker-compose.dev.yml" down 2>$null
 } catch {
-    # Ignorar si docker no esta corriendo
+    # Ignorar si Docker no esta corriendo
 }
 
-Write-Host "[OK] Todos los servicios han sido detenidos correctamente." -ForegroundColor Green
+Write-Host ""
+Write-Host "[OK] Todos los servicios han sido detenidos." -ForegroundColor Green
+Write-Host "     Para volver a levantar: .\start_all.ps1" -ForegroundColor Gray
