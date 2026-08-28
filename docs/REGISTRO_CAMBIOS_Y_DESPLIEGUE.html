@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Manual de Usuario — Sistema de Iniciativas Legislativas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+  :root {
+    --azul: #003876;
+    --azul-claro: #2151d1;
+    --fondo: #fafbfc;
+    --borde: #e2e6ea;
+    --texto: #1a1a2e;
+    --tenue: #5a6072;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--texto);
+    background: #fff;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 32px;
+  }
+
+  h1 { font-size: 26px; color: var(--azul); border-bottom: 3px solid var(--azul); padding-bottom: 8px; margin: 32px 0 16px; }
+  h2 { font-size: 21px; color: var(--azul); border-bottom: 2px solid var(--borde); padding-bottom: 6px; margin: 28px 0 14px; }
+  h3 { font-size: 17px; color: var(--azul-claro); margin: 22px 0 10px; }
+  h4 { font-size: 15px; color: var(--texto); margin: 18px 0 8px; }
+  h5 { font-size: 14px; color: var(--tenue); margin: 14px 0 6px; }
+
+  p { margin: 8px 0; }
+  hr { border: none; border-top: 1px solid var(--borde); margin: 24px 0; }
+
+  a { color: var(--azul-claro); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code {
+    background: #f0f2f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12.5px;
+    font-family: 'Consolas', 'Fira Code', monospace;
+  }
+
+  pre {
+    background: #1e2029;
+    color: #e8ecf1;
+    padding: 16px 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 12px 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  blockquote {
+    border-left: 4px solid var(--azul-claro);
+    background: #f0f4ff;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 13.5px;
+    color: #1a3a6b;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  th, td {
+    border: 1px solid var(--borde);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  th {
+    background: var(--azul);
+    color: #fff;
+    font-weight: 600;
+  }
+  tr:nth-child(even) { background: #f8f9fb; }
+
+  ul, ol { margin: 8px 0 8px 24px; }
+  li { margin: 4px 0; }
+
+  figure {
+    margin: 16px 0;
+    text-align: center;
+  }
+  figure img {
+    max-width: 100%;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  figcaption {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--tenue);
+    font-style: italic;
+  }
+
+  /* Mermaid placeholder */
+  pre.mermaid {
+    background: #f8f9fb;
+    color: var(--texto);
+    border: 1px dashed var(--borde);
+    text-align: center;
+    font-size: 12px;
+  }
+
+  /* Impresión */
+  @media print {
+    body { padding: 0; font-size: 11px; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 16px; page-break-after: avoid; }
+    h3, h4 { page-break-after: avoid; }
+    figure { page-break-inside: avoid; }
+    table { page-break-inside: avoid; }
+    pre { font-size: 10px; }
+    blockquote { background: #f0f4ff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    th { background: var(--azul) !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<h1>Registro de Cambios por Repositorio y Guía de Ejecución de Scripts</h1>
+
+<strong>Viceministerio para el Diálogo Social y los Derechos Humanos</strong>
+<p>Ministerio del Interior · República de Colombia</p>
+<strong>Plataforma:</strong> Sistema de Seguimiento de Iniciativas Legislativas
+<strong>Entorno de Producción:</strong> <code>https://mininterior-iniciativas.fabricasoftware.co/</code>
+<strong>Fecha:</strong> 28 de agosto de 2026
+
+<hr/>
+
+<h2>Índice</h2>
+
+<ol><li><a href="#1-resumen-de-repositorios-modificados">Resumen de Repositorios Modificados</a></li><li><a href="#2-detalle-de-cambios-por-repositorio">Detalle de Cambios por Repositorio</a><br/>- 2.1 <a href="#21-repositorio-principal-agregador">Repositorio Principal (Agregador)</a><br/>- 2.2 <a href="#22-db-iniciativas-base-de-datos"><code>db-iniciativas</code> (Base de Datos)</a><br/>- 2.3 <a href="#23-front-tablero-frontend-principal"><code>front-tablero</code> (Frontend Principal)</a><br/>- 2.4 <a href="#24-front-admin-frontend-administrativo"><code>front-admin</code> (Frontend Administrativo)</a><br/>- 2.5 <a href="#25-front-radicacion-frontend-radicación-pública"><code>front-radicacion</code> (Frontend Radicación Pública)</a><br/>- 2.6 <a href="#26-ms-administracion-microservicio"><code>ms-administracion</code> (Microservicio)</a><br/>- 2.7 <a href="#27-ms-flujo-estados-microservicio"><code>ms-flujo-estados</code> (Microservicio)</a><br/>- 2.8 <a href="#28-microservicios-e-infraestructura-base">Microservicios e Infraestructura Base</a></li><li><a href="#3-guía-de-scripts-del-proyecto-y-cómo-aplicarlos">Guía de Scripts del Proyecto y Cómo Aplicarlos</a><br/>- 3.1 <a href="#31-scripts-de-base-de-datos-y-migraciones-sql">Scripts de Base de Datos y Migraciones SQL</a><br/>- 3.2 <a href="#32-scripts-de-pruebas-calidad-y-accesibilidad-wcag-aa">Scripts de Pruebas, Calidad y Accesibilidad (WCAG AA)</a><br/>- 3.3 <a href="#33-scripts-de-generación-de-documentación-html--pdf">Scripts de Generación de Documentación (HTML / PDF)</a><br/>- 3.4 <a href="#34-scripts-de-despliegue-y-orquestación-de-contenedores">Scripts de Despliegue y Orquestación de Contenedores</a></li><li><a href="#4-procedimiento-de-despliegue-a-producción">Procedimiento de Despliegue a Producción</a></li></ol>
+<hr/>
+
+<h2>1. Resumen de Repositorios Modificados</h2>
+
+<p>En los últimos ciclos de desarrollo se implementaron mejoras en diseño responsivo, capacidades analíticas para directivos, gestión de permisos para administradores, nuevas migraciones SQL y documentación técnica exhaustiva para entrega formal.</p>
+
+<table><thead><tr><th>Repositorio / Submódulo</th><th>Tipo</th><th>Cambios Principales</th></tr></thead><tbody><tr><td><strong><code>MININTERIOR---INICIATIVAS</code></strong></td><td>Repo Principal</td><td>Documentación técnica completa (Manual v2.0 con 10 capturas, Arquitectura Técnica, Modelo de Datos ERD Nivel 3), scripts compiladores HTML y sincronización de punteros Git.</td></tr><tr><td><strong><code>db-iniciativas</code></strong></td><td>Base de Datos</td><td>Migración <code>18_flujo_mover_admin.sql</code> (permiso <code>flujo.configurar</code> para mover sin ser responsable) y nuevo SP de desempeño de funcionarios.</td></tr><tr><td><strong><code>front-tablero</code></strong></td><td>Frontend</td><td>Panel analítico ejecutivo, menú responsivo de direcciones (desplegable en <code><860px</code>), alineación de header/footer a 2100px, rediseño de <code>PanelFlujo</code>.</td></tr><tr><td><strong><code>front-admin</code></strong></td><td>Frontend</td><td>Rediseño "World-Class" con menú colapsable lateral, módulo de gestión de direcciones, alta y edición de usuarios, panel de analítica ejecutiva.</td></tr><tr><td><strong><code>front-radicacion</code></strong></td><td>Frontend</td><td>Ajuste de ancho de contenedor (2100px), modales ampliados a <code>max-w-2xl</code> y optimización para Safari / iOS.</td></tr><tr><td><strong><code>ms-administracion</code></strong></td><td>Microservicio</td><td>Endpoint <code>GET /api/admin/estadisticas/desempeno</code>, CRUD de dependencias y soporte para creación de usuarios.</td></tr><tr><td><strong><code>ms-flujo-estados</code></strong></td><td>Microservicio</td><td>Endpoint espejo de métricas de flujo y compatibilidad con autorización de la migración 18.</td></tr><tr><td><strong><code>infra-iniciativas</code> / Otros MS</strong></td><td>Infra / Backend</td><td>Unificación de orquestación en <code>docker-compose.yml</code>, configuración de variables de entorno seguras y salud de servicios.</td></tr></tbody></table>
+<hr/>
+
+<h2>2. Detalle de Cambios por Repositorio</h2>
+
+<h3>2.1. Repositorio Principal (Agregador)</h3>
+<em>Gestión global de la plataforma, integración de submódulos y documentación de entrega.</em>
+
+<ul><li><strong>Documentos Generados y Versionados:</strong><br/>- <code>docs/MANUAL_USUARIO.md</code> y <code>docs/MANUAL_USUARIO.html</code>: Manual operativo paso a paso con 10 capturas reales embebidas en base64, catálogo de permisos, recorrido de trámite y FAQ.<br/>- <code>docs/ARQUITECTURA_TECNICA.md</code> y <code>docs/ARQUITECTURA_TECNICA.html</code>: Documento de ingeniería con topología de microservicios, API Gateway, matriz de dependencias, políticas de seguridad y decisiones de diseño (ADRs).<br/>- <code>docs/MODELO_DATOS_ERD.md</code> y <code>docs/MODELO_DATOS_ERD.html</code>: Modelo de datos físico y lógico Nivel 3, diagramas Mermaid interactivos, diccionario exhaustivo de 15 tablas y catálogo de 54 procedimientos almacenados.</li><li><strong>Herramientas de Compilación:</strong><br/>- <code>scripts/manual-a-html.js</code>: Conversor de Markdown a HTML autocontenido con incrustación de imágenes.<br/>- <code>scripts/arq-a-html.js</code>: Compilador de arquitectura técnica a HTML listo para PDF.<br/>- <code>scripts/erd-a-html.js</code>: Compilador de modelo de datos con biblioteca <code>mermaid.js</code> para renderizado vectorial en navegador.</li></ul>
+<hr/>
+
+<h3>2.2. <code>db-iniciativas</code> (Base de Datos)</h3>
+<em>Fuente única de verdad de la capa de datos y catálogo de migraciones.</em>
+
+<ul><li><strong>Migración 18 (<code>migraciones/18_flujo_mover_admin.sql</code>):</strong><br/>- Actualiza el procedimiento <code>sp_transiciones_disponibles</code> para que usuarios con el permiso <code>flujo.configurar</code> (Administradores/Superadmin) puedan visualizar y ejecutar todas las transiciones disponibles en cualquier iniciativa, sin estar obligatoriamente asignados como responsables directos del estado de origen.</li><li><strong>Procedimiento de Desempeño (<code>sp_desempeno_funcionarios</code>):</strong><br/>- Cálculo de tiempos promedio de permanencia por estado y métricas de volumen atendido por cada funcionario responsable.</li></ul>
+<hr/>
+
+<h3>2.3. <code>front-tablero</code> (Frontend Principal)</h3>
+<em>Tablero de seguimiento, visualización ejecutiva y gestión operativa de iniciativas.</em>
+
+<ul><li><strong>Filtros Responsivos "World-Class" (<code>src/rutas/tablero.tsx</code>, <code>src/tablero-aprobado.css</code>):</strong><br/>- Implementación de switch adaptativo: botones píldora en pantallas de escritorio y <code><select></code> estilizado en pantallas móviles (<code>< 860px</code>).</li><li><strong>Alineación Visual Institucional (<code>src/pie-institucional.css</code>):</strong><br/>- Homologación de ancho máximo del contenedor principal, cabecera GOV.CO y pie de página institucional a <code>2100px</code> (<code>2036px</code> en footer compensando el padding de <code>64px</code>).</li><li><strong>Panel de Detalle y Acciones (<code>PanelFlujo</code>):</strong><br/>- Botones de acción organizados por intención cromática (🟢 Avanzar, 🟡 Devolver, 🔴 Rechazar).<br/>- Banner de confirmación con indicación visual del movimiento de estado (<code>Estado Origen → Estado Destino</code>).<br/>- Campo de motivo obligatorio para devoluciones y rechazos, y opcional para avances.</li></ul>
+<hr/>
+
+<h3>2.4. <code>front-admin</code> (Frontend Administrativo)</h3>
+<em>Consola de parametrización, seguridad y gestión de dependencias.</em>
+
+<ul><li><strong>Rediseño de Navegación Lateral:</strong><br/>- Menú lateral colapsable estilo Gmail (iconos compactos con expansión superpuesta al pasar el cursor).</li><li><strong>Gestión de Direcciones y Estados:</strong><br/>- Nueva vista de Configuración con pestañas separadas para el catálogo de dependencias del Ministerio y la máquina de estados del flujo.</li><li><strong>Administración de Cuentas y Roles:</strong><br/>- Alta interactiva de funcionarios con asignación de contraseña provisional y selección de roles RBAC.</li></ul>
+<hr/>
+
+<h3>2.5. <code>front-radicacion</code> (Frontend Radicación Pública)</h3>
+<em>Portal para registro de iniciativas ciudadanas.</em>
+
+<ul><li><strong>Optimización de Experiencia de Usuario:</strong><br/>- Ventana modal de radicación ampliada en un 30% (<code>max-w-2xl</code>) para mayor legibilidad de formularios extensos.<br/>- Corrección de comportamiento táctil y selectores en dispositivos iOS y navegadores móviles.</li></ul>
+<hr/>
+
+<h3>2.6. <code>ms-administracion</code> (Microservicio)</h3>
+<ul><li>Incorporación del endpoint <code>GET /api/admin/estadisticas/desempeno</code>.</li><li>Soporte para administración de direcciones mediante <code>sp_listar_direcciones_admin</code> y <code>sp_guardar_direccion</code>.</li></ul>
+<h3>2.7. <code>ms-flujo-estados</code> (Microservicio)</h3>
+<ul><li>Actualización de lógica de autorización delegada en <code>sp_mover_iniciativa</code>.</li><li>Endpoint <code>/api/flujo/desempeno</code> para consulta de productividad del flujo.</li></ul>
+<h3>2.8. Microservicios e Infraestructura Base</h3>
+<ul><li><code>ms-autenticacion</code>, <code>ms-iniciativas</code>, <code>ms-radicacion</code>, <code>ms-notificaciones</code>, <code>api-gateway</code>, <code>infra-iniciativas</code>, <code>tipos-compartidos</code>:<br/>- Estandarización de <code>Dockerfile</code> no privilegiado (<code>USER node</code>).<br/>- Variables de entorno centralizadas en <code>.env.example</code>.</li></ul>
+<hr/>
+
+<h2>3. Guía de Scripts del Proyecto y Cómo Aplicarlos</h2>
+
+<h3>3.1. Scripts de Base de Datos y Migraciones SQL</h3>
+
+<h4>A. Aplicar Migraciones Pendientes (Recomendado en Producción / Actualizaciones)</h4>
+<p>Aplica únicamente las migraciones que no se hayan registrado en la tabla <code>schema_version</code> sin tocar datos existentes:</p>
+<pre><code class="language-bash"># Desde la raíz del proyecto (requiere Node.js y MySQL en ejecución)
+<p>node scripts/aplicar-migraciones.js</p>
+</code></pre>
+
+<h4>B. Aplicar Migración Específica Manualmente (Ejemplo: Migración 18)</h4>
+<p>Si desea aplicar directamente la migración 18 contra el contenedor de MySQL:</p>
+<pre><code class="language-powershell"># En Windows (usando el contenedor de desarrollo o producción)
+<p>Get-Content "db-iniciativas\migraciones\18_flujo_mover_admin.sql" | docker exec -i iniciativas-mysql-1 mysql -u root -pdesarrollo iniciativas_legislativas</p>
+</code></pre>
+
+<h4>C. Crear Primera Cuenta Administradora (Superadmin)</h4>
+<pre><code class="language-bash"># Linux / macOS / Git Bash:
+<p>SUPERADMIN_CORREO=admin@mininterior.gov.co SUPERADMIN_CONTRASENA=Admin2026! node scripts/crear_superadmin.js</p>
+
+<h1>Windows PowerShell:</h1>
+<p>$env:SUPERADMIN_CORREO="admin@mininterior.gov.co"</p>
+<p>$env:SUPERADMIN_CONTRASENA="Admin2026!"</p>
+<p>node scripts/crear_superadmin.js</p>
+</code></pre>
+
+<h4>D. Sembrar Datos de Demostración (Opcional para Pruebas)</h4>
+<pre><code class="language-bash">node scripts/seed_iniciales.js
+</code></pre>
+
+<h4>E. Instalación Completa desde Cero (Entornos Nuevos)</h4>
+<pre><code class="language-bash">./scripts/instalar-base-de-datos.sh
+<p>./scripts/verificar-instalacion.sh</p>
+</code></pre>
+
+<hr/>
+
+<h3>3.2. Scripts de Pruebas, Calidad y Accesibilidad (WCAG AA)</h3>
+
+<h4>A. Verificación de Contraste de Color WCAG 2.1 AA</h4>
+<p>Obligación legal conforme a la Resolución 1519 de 2020 del MinTIC. Comprueba 31 combinaciones cromáticas en hojas de estilo:</p>
+<pre><code class="language-bash">node scripts/verificar-contraste.js
+</code></pre>
+
+<h4>B. Suite Completa de Pruebas Frontend (7 Suites en jsdom)</h4>
+<p>Ejecuta verificación de contraste, compila el paquete de pruebas y evalúa accesibilidad, trampas de foco, URLs y filtros:</p>
+<pre><code class="language-bash">cd front-tablero
+<p>npm run prueba</p>
+</code></pre>
+
+<h4>C. Verificación de Flujo y Permisos contra Base de Datos Viva</h4>
+<p>Evalúa 30 aserciones sobre reglas de negocio, transiciones y autorizaciones:</p>
+<pre><code class="language-bash">node scripts/verificar-flujo.js
+</code></pre>
+
+<h4>D. Prueba End-to-End (E2E) de la Plataforma</h4>
+<pre><code class="language-bash">node scripts/prueba-e2e.mjs
+</code></pre>
+
+<hr/>
+
+<h3>3.3. Scripts de Generación de Documentación (HTML / PDF)</h3>
+
+<p>Para compilar los documentos Markdown a versiones HTML independientes listas para visualizar o imprimir en PDF (<code>Ctrl + P</code>):</p>
+
+<pre><code class="language-bash"># 1. Compilar Manual de Usuario con capturas embebidas:
+<p>node scripts/manual-a-html.js</p>
+<h1>Salida: docs/MANUAL_USUARIO.html</h1>
+
+<h1>2. Compilar Documento de Arquitectura Técnica:</h1>
+<p>node scripts/arq-a-html.js</p>
+<h1>Salida: docs/ARQUITECTURA_TECNICA.html</h1>
+
+<h1>3. Compilar Modelo de Datos y Diagrama ERD (Nivel 3) con Mermaid.js:</h1>
+<p>node scripts/erd-a-html.js</p>
+<h1>Salida: docs/MODELO_DATOS_ERD.html</h1>
+</code></pre>
+
+<hr/>
+
+<h3>3.4. Scripts de Despliegue y Orquestación de Contenedores</h3>
+
+<h4>A. Entorno Local Rápido (Windows PowerShell)</h4>
+<pre><code class="language-powershell"># Iniciar todo el ecosistema (MySQL, 6 microservicios, API Gateway y 3 frontends):
+<p>.\start_all.ps1</p>
+
+<h1>Iniciar forzando la reconstrucción de imágenes Docker:</h1>
+<p>.\start_all.ps1 -Rebuild</p>
+
+<h1>Detener todos los servicios y contenedores:</h1>
+<p>.\stop_all.ps1</p>
+</code></pre>
+
+<h4>B. Solo Base de Datos para Desarrollo Local en Caliente</h4>
+<pre><code class="language-bash"># Levanta MySQL 8.4 y aplica automáticamente todas las migraciones:
+<p>docker compose -f docker-compose.dev.yml up -d</p>
+
+<h1>Para detener la base de desarrollo:</h1>
+<p>docker compose -f docker-compose.dev.yml down</p>
+</code></pre>
+
+<hr/>
+
+<h2>4. Procedimiento de Despliegue a Producción</h2>
+
+<p>Para desplegar la versión completa en el servidor de producción (<code>https://mininterior-iniciativas.fabricasoftware.co/</code>):</p>
+
+<ol><li><strong>Clonar repositorio con todos sus submódulos:</strong><br/><pre><code class="language-bash">   git clone --recurse-submodules https://github.com/mininterior-iniciativas/plataforma.git<br/>cd plataforma<br/></code></pre></li></ol>
+<ol><li><strong>Configurar variables de entorno:</strong><br/><pre><code class="language-bash">   cp .env.example .env<br/># Configurar contraseñas seguras, SESSION_SECRET y ORIGEN_PERMITIDO<br/></code></pre></li></ol>
+<ol><li><strong>Construir y levantar la orquestación completa:</strong><br/><pre><code class="language-bash">   docker compose up -d --build<br/></code></pre><br/><em>El contenedor <code>migrador</code> aplicará automáticamente todas las migraciones SQL pendientes antes de levantar los microservicios.</em></li></ol>
+<ol><li><strong>Verificar el estado de salud de los servicios:</strong><br/><pre><code class="language-bash">   curl -I https://mininterior-iniciativas.fabricasoftware.co/<br/>curl -s http://localhost:3000/api/salud<br/></code></pre></li></ol>
+<hr/>
+
+<blockquote><strong>Documento de Control de Versiones y Despliegue</strong>  <br/><strong>Sistema de Seguimiento de Iniciativas Legislativas</strong>  <br/><strong>Ministerio del Interior · República de Colombia</strong></blockquote>
+
+</body>
+</html>
